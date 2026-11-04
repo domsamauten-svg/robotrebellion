@@ -1,0 +1,163 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robot Rebellion | Official Website</title>
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  color: white;
+  background: #080e19;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22px 7%;
+  background: #0e1929;
+  border-bottom: 1px solid #245a79;
+}
+
+.logo {
+  color: #58d5ff;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+}
+
+.hero {
+  min-height: 78vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 50px 20px;
+  background: radial-gradient(circle at center, #183b59, #080e19 75%);
+}
+
+h1 {
+  font-size: clamp(45px, 8vw, 95px);
+  margin: 0;
+  color: #65d9ff;
+  text-shadow: 0 0 35px #168cbe;
+}
+
+.subtitle {
+  font-size: 20px;
+  color: #c3d5e5;
+  margin: 25px 0 35px;
+}
+
+.play {
+  display: inline-block;
+  background: #41caff;
+  color: #07111b;
+  padding: 18px 50px;
+  border-radius: 8px;
+  font-size: 20px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: .2s;
+}
+
+.play:hover {
+  background: white;
+  transform: scale(1.05);
+}
+
+section {
+  padding: 70px 10%;
+  text-align: center;
+}
+
+section h2 {
+  color: #65d9ff;
+  font-size: 32px;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 35px;
+}
+
+.feature {
+  padding: 30px;
+  background: #132438;
+  border: 1px solid #254a67;
+  border-radius: 12px;
+}
+
+footer {
+  text-align: center;
+  padding: 30px;
+  color: #8194a6;
+  border-top: 1px solid #243b50;
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+  <div class="logo">ROBOT REBELLION</div>
+  <a href="#about">ABOUT</a>
+</nav>
+
+<div class="hero">
+  <div>
+    <h1>ROBOT<br>REBELLION</h1>
+    <p class="subtitle">
+      The machines have risen. Humanity fights back.
+    </p>
+
+    <a class="play" href="game.html">PLAY NOW</a>
+
+    <p style="color:#91a9bc;margin-top:22px">
+      Free browser FPS • No installation required
+    </p>
+  </div>
+</div>
+
+<section id="about">
+  <h2>SURVIVE THE UPRISING</h2>
+
+  <p>
+    Battle waves of hostile robots in an expanding futuristic city.
+  </p>
+
+  <div class="features">
+    <div class="feature">
+      <h3>FUTURISTIC WEAPONS</h3>
+      <p>Fight with powerful energy weapons.</p>
+    </div>
+
+    <div class="feature">
+      <h3>EXPLORE THE CITY</h3>
+      <p>Discover streets, parks, and urban battlegrounds.</p>
+    </div>
+
+    <div class="feature">
+      <h3>ENDLESS WAVES</h3>
+      <p>Survive increasingly dangerous robot attacks.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  ROBOT REBELLION • BROWSER GAME
+</footer>
+
+</body>
+</html>
