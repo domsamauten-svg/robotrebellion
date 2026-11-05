@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>STARFALL 3.2 — Mouse & Pause Fix</title>
+<style>
+:root{font-family:Inter,system-ui,Arial,sans-serif;color:#eaf9ff}*{box-sizing:border-box}body{margin:0;overflow:hidden;background:#07111b}canvas{display:block}button{cursor:pointer;font:inherit}#overlay{position:fixed;inset:0;display:grid;place-items:center;z-index:20;background:radial-gradient(circle at 50% 35%,#123c58f4,#030a17f5 70%);padding:20px}.panel{width:min(570px,95vw);padding:38px;border:1px solid #45d9ff77;background:linear-gradient(160deg,#112e43f7,#06101df7);box-shadow:0 0 90px #00aaff20;border-radius:18px;text-align:center}.eyebrow{font-size:12px;letter-spacing:.4em;color:#67e7ff}h1{font-size:clamp(32px,6vw,58px);margin:8px 0 3px;line-height:1;letter-spacing:.04em;text-shadow:0 0 25px #00d9ff55}h2{font-size:18px;font-weight:500;color:#9dbbd0;margin:10px 0 26px}.button{background:linear-gradient(90deg,#35d6ff,#6cf1e2);border:0;color:#032030;padding:15px 45px;border-radius:7px;font-weight:900;letter-spacing:.15em}.button:hover{filter:brightness(1.12)}.help{line-height:2;color:#afc8d7;font-size:13px;margin-top:22px}.help b{color:#fff}a{color:#7deaff}#error{color:#ffb0a5;font-size:13px;min-height:18px}#hud{display:none;pointer-events:none;position:fixed;inset:0;z-index:10}#top{position:absolute;left:20px;top:18px;background:#061524c9;border:1px solid #6ddfff66;border-radius:9px;padding:13px 17px;min-width:205px;box-shadow:0 0 20px #00bfff15}#top .brand{font-size:11px;letter-spacing:.24em;color:#7ee8ff;margin-bottom:8px}#healthbar{height:8px;border-radius:8px;background:#293c50;overflow:hidden;margin:6px 0}#healthfill{height:100%;width:100%;background:linear-gradient(90deg,#ff5c70,#ffb16b);transition:width .15s}#bottom{position:absolute;right:22px;bottom:24px;text-align:right;text-shadow:0 2px 6px #000}#weapon{color:#79eaff;letter-spacing:.18em;font-size:12px}#ammo{font-size:44px;font-weight:900}#ammo small{font-size:19px;color:#9db1c1}#crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:23px;height:23px}#crosshair:before,#crosshair:after{content:"";position:absolute;background:#d7ffff;box-shadow:0 0 7px #0cf}#crosshair:before{width:2px;height:23px;left:10px}#crosshair:after{height:2px;width:23px;top:10px}#centerMessage{position:absolute;top:26%;left:0;right:0;text-align:center;font-size:30px;font-weight:900;letter-spacing:.13em;color:#7cf5ff;text-shadow:0 0 22px #00eaff}#hitFlash{position:absolute;inset:0;background:#f13b4b;opacity:0;transition:opacity .12s}#hint{position:absolute;bottom:20px;left:20px;font-size:12px;color:#d0e3eeaa}#reticleHit{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:25px;color:#ff7a7a;opacity:0}#version{font-size:11px;color:#7da7b7;margin-top:15px}
+#mission{position:absolute;top:18px;right:20px;max-width:350px;padding:15px 18px;background:linear-gradient(130deg,#091b31ed,#12324bdc);border:1px solid #64edff88;border-left:4px solid #6fffe4;border-radius:8px;text-align:left;box-shadow:0 8px 30px #0007}#waypoint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:none;min-width:130px;text-align:center;color:#d9ffff;text-shadow:0 2px 9px #001a2b;font-size:12px;font-weight:900;letter-spacing:.06em;white-space:nowrap}#waypoint .diamond{display:block;font-size:30px;color:#55f6ff;filter:drop-shadow(0 0 9px #00dfff)}#waypoint .distance{font-size:11px;color:#aef9ff}#mission small{font-size:10px;letter-spacing:.2em;color:#86f3fa}#objective{font-size:14px;margin-top:7px;font-weight:700}#comms{position:absolute;bottom:92px;left:50%;transform:translateX(-50%);width:min(650px,90vw);padding:16px 20px;background:#051325e9;border:1px solid #6cf1ff77;border-radius:8px;display:none;text-align:left;box-shadow:0 8px 40px #000a}#speaker{font-size:11px;letter-spacing:.15em;color:#71f7ff;font-weight:800}#dialogue{margin-top:6px;line-height:1.45;font-size:16px}#interact{position:absolute;top:62%;width:100%;text-align:center;font-size:17px;font-weight:800;color:#a6ffdf;text-shadow:0 0 10px #0ff;display:none}#chapter{font-size:12px;color:#9deaff;letter-spacing:.3em}#hud{font-weight:500}#crosshair{filter:drop-shadow(0 0 3px #00dfff)}
+</style></head><body><style>
+#cinematicLayer{position:fixed;inset:0;z-index:90;background:#020714;display:none}
+#cinematicFrame{width:100%;height:100%;border:0}
+#cinematicSkip{position:absolute;right:18px;bottom:16px;z-index:91;padding:11px 17px;border:1px solid #7ce9ff;background:#0c2940;color:#fff;border-radius:5px;font-weight:700}
+#novaVoice{pointer-events:auto;position:absolute;bottom:17px;left:18px;z-index:8;background:#092538d9;color:#bff6ff;border:1px solid #60b4c777;border-radius:5px;padding:7px 11px;font-size:12px}
+</style><div id="cinematicLayer"><iframe id="cinematicFrame" title="STARFALL opening cinematic" allow="autoplay"></iframe><button id="cinematicSkip">SKIP INTRO → PLAY</button></div>
+<div id="overlay"><div class="panel"><div class="eyebrow">STARFALL // PANORAMA DECK // BREACH ALERT</div><h1 id="menuTitle">STARFALL <span style="color:#6af0ff">3.1</span></h1><h2 id="menuSub">MISSION 01: INFILTRATION — You are a human survivor infiltrating the robot-built station Starfall. NOVA will guide you through each objective.</h2><button class="button" id="play">WATCH INTRO &amp; DEPLOY</button><div style="margin:10px 0"><button id="novaTest" type="button" style="background:#143a51;color:#d7f8ff;border:1px solid #6bdcff;border-radius:6px;padding:9px 14px">🔊 TEST NOVA VOICE</button><div id="novaTestStatus" role="status" style="font-size:12px;color:#b9dcea;margin-top:6px">Test your browser audio before starting.</div></div><div class="help"><b>W A S D</b> MOVE &nbsp;·&nbsp; <b>SHIFT</b> SPRINT &nbsp;·&nbsp; <b>SPACE</b> JUMP<br><b>MOUSE</b> AIM &nbsp;·&nbsp; <b>CLICK</b> FIRE &nbsp;·&nbsp; <b>R</b> RELOAD<br><b>1 / 2</b> SWITCH WEAPONS &nbsp;·&nbsp; <b>E</b> INTERACT &nbsp;·&nbsp; <b>ESC</b> PAUSE</div><div style="margin:15px 0;color:#b9dcea;font-size:14px">Graphics: <select id="quality" style="padding:8px;border-radius:6px;background:#17364b;color:white;border:1px solid #56c7e9"><option value="0.75">Performance (fastest)</option><option value="1" selected>Balanced (recommended)</option><option value="1.35">Quality (slower)</option></select></div><p id="error">Loading engine…</p><div id="version">Single-file STARFALL 3.2 controls fix • <a href="index.html">Homepage</a></div></div></div>
+<div id="hud"><button id="novaVoice" type="button">NOVA VOICE: ON · H FOR HINT</button><div id="mission"><small>STARFALL // MISSION CONTROL</small><div id="objective">Awaiting orders...</div></div><div id="comms"><div id="speaker">NOVA // AI COMPANION</div><div id="dialogue"></div></div><div id="interact"></div><div id="hitFlash"></div><div id="top"><div class="brand">STARFALL // MARINE</div><div>ARMOR <strong id="health">100</strong> / 100</div><div id="healthbar"><div id="healthfill"></div></div><div>WAVE <b id="wave">1</b> &nbsp;·&nbsp; KILLS <b id="kills">0</b></div><div>ROBOTS ACTIVE <b id="left">0</b> &nbsp;·&nbsp; REINFORCEMENTS <b id="pending">0</b></div></div><div id="waypoint"><span class="diamond">◆</span><span id="waypointName">OBJECTIVE</span><div class="distance" id="waypointDistance"></div></div><div id="crosshair"></div><div id="reticleHit">×</div><div id="centerMessage"></div><div id="bottom"><div id="weapon">VX-9 ASSAULT RIFLE</div><div id="ammo">100%</div><div id="reserveDisplay" style="font-size:14px;color:#a8eaff;letter-spacing:.08em">RESERVE ENERGY: 300%</div></div><div id="hint">1 Rifle &nbsp; 2 Shotgun &nbsp; R Reload &nbsp; H NOVA Hint &nbsp; ESC Pause</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id), overlay=$('overlay'),hud=$('hud'),play=$('play');
+const cinematicHtml="<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>STARFALL \u2014 Opening Cinematic<\/title><style>*{box-sizing:border-box}body{margin:0;background:#020714;color:#e9f6ff;font:16px system-ui,Arial;overflow:hidden}canvas{display:block}#startScreen{position:fixed;inset:0;background:radial-gradient(ellipse,#17304a,#02050e 70%);display:grid;place-items:center;z-index:8;text-align:center}h1{font-size:clamp(48px,10vw,100px);letter-spacing:.15em;margin:0}p{color:#aec6d5;line-height:1.6}button{background:#164866;color:white;border:1px solid #65d7ff;padding:12px 20px;cursor:pointer;border-radius:6px;font-weight:700}button:hover{background:#287ba2}#barTop,#barBottom{position:fixed;left:0;width:100%;height:7%;background:#02040a;pointer-events:none}#barTop{top:0}#barBottom{bottom:0}#caption{position:fixed;bottom:9%;left:10%;width:80%;text-align:center;font-size:clamp(15px,2vw,21px);text-shadow:0 2px 8px #000;min-height:72px;pointer-events:none}#speaker{display:block;color:#7cdeff;letter-spacing:.2em;font-size:12px;font-weight:700;margin-bottom:8px}#chapter{position:fixed;top:10%;left:5%;letter-spacing:.18em;color:#a3cde4;font-size:12px}#tools{position:fixed;top:9%;right:3%;display:none;gap:7px}#tools button{font-size:11px;padding:8px}#progress{position:fixed;bottom:6%;left:0;height:3px;background:#58d8ff;width:0;box-shadow:0 0 15px #58d8ff}<\/style><script src=\"https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js\"><\/script><\/head><body><div id=\"startScreen\"><div style=\"max-width:580px;padding:24px\"><p style=\"letter-spacing:.3em;color:#73d9ff\">ORIGINAL OPENING CINEMATIC<\/p><h1>STARFALL<\/h1><p>Earth is lost. Humanity is nearly extinct.<br>One survivor approaches the heart of the machine empire.<\/p><button id=\"start\">\u25b6 WATCH CUTSCENE<\/button><p id=\"loading\" style=\"font-size:12px\">~90 seconds \u00b7 Narrated by NOVA \u00b7 Works in Chrome<\/p><\/div><\/div><div id=\"barTop\"><\/div><div id=\"barBottom\"><\/div><div id=\"chapter\">THE AGE OF MACHINES<\/div><div id=\"caption\"><span id=\"speaker\"><\/span><span id=\"line\"><\/span><\/div><div id=\"tools\"><button id=\"voice\">VOICE ON<\/button><button id=\"replay\">REPLAY<\/button><button id=\"skip\">SKIP \u25b6<\/button><\/div><div id=\"progress\"><\/div><script>\n(()=>{'use strict';const $=id=>document.getElementById(id);if(!window.THREE){$('loading').textContent='Could not load 3D engine. Check internet connection.';$('start').disabled=true;return;}const T=THREE,scene=new T.Scene();scene.background=new T.Color(0x01040c);const camera=new T.PerspectiveCamera(65,innerWidth/innerHeight,.1,3000),renderer=new T.WebGLRenderer({antialias:true,powerPreference:'default'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.4;document.body.prepend(renderer.domElement);scene.add(new T.HemisphereLight(0x8da9d2,0x111723,2.1));const sun=new T.DirectionalLight(0xd6e9ff,3);sun.position.set(-100,150,180);scene.add(sun);const mat=(c,metal=.7,rough=.4)=>new T.MeshStandardMaterial({color:c,metalness:metal,roughness:rough}),steel=mat(0x586b7d),dark=mat(0x182737),silver=mat(0x8999a9),glass=mat(0x22618b,.4,.15),blue=new T.MeshBasicMaterial({color:0x63dbff}),orange=new T.MeshBasicMaterial({color:0xffb35b});function mesh(g,m,p,x=0,y=0,z=0){const o=new T.Mesh(g,m);o.position.set(x,y,z);p.add(o);return o;}function box(p,x,y,z,w,h,d,m){return mesh(new T.BoxGeometry(w,h,d),m,p,x,y,z);}function cyl(p,x,y,z,r,h,m){return mesh(new T.CylinderGeometry(r,r,h,12),m,p,x,y,z);}let seed=88;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};const pts=[];for(let i=0;i<1800;i++){let a=rand()*Math.PI*2,b=rand()*2-1,r=950+rand()*900;pts.push(Math.sqrt(1-b*b)*Math.cos(a)*r,b*r,Math.sqrt(1-b*b)*Math.sin(a)*r);}const stars=new T.BufferGeometry();stars.setAttribute('position',new T.Float32BufferAttribute(pts,3));scene.add(new T.Points(stars,new T.PointsMaterial({color:0xdceeff,size:2,sizeAttenuation:false})));const earth=new T.Group();earth.position.set(-280,-120,-650);scene.add(earth);mesh(new T.SphereGeometry(155,40,30),mat(0x28649a,0,1),earth);const clouds=new T.MeshBasicMaterial({color:0xc8e8f6,transparent:true,opacity:.3,depthWrite:false});for(let i=0;i<42;i++){let a=rand()*Math.PI*2,b=rand()*2-1,o=mesh(new T.SphereGeometry(5+rand()*16,8,6),clouds,earth,Math.cos(a)*Math.sqrt(1-b*b)*156,b*156,Math.sin(a)*Math.sqrt(1-b*b)*156);o.scale.set(1.8,.4,.8);}const station=new T.Group();station.position.set(0,0,-330);scene.add(station);mesh(new T.SphereGeometry(48,32,24),steel,station);mesh(new T.SphereGeometry(43,32,24),dark,station);for(let i=0;i<18;i++){let a=i*Math.PI*2/18;const p=box(station,Math.cos(a)*45,0,Math.sin(a)*45,4,65,6,silver);p.rotation.y=-a;}for(let y=-30;y<=30;y+=12){let r=mesh(new T.TorusGeometry(46,1.5,7,64),silver,station,0,y,0);r.rotation.x=Math.PI/2;}for(let i=0;i<32;i++){let a=i*Math.PI*2/32;box(station,Math.cos(a)*47,14,Math.sin(a)*47,3,2,3,i%4?blue:orange);}cyl(station,0,69,0,2,35,silver);for(let side of [-1,1]){box(station,side*84,0,0,145,10,15,steel);for(let j=0;j<12;j++)box(station,side*(27+j*11),6,0,4,12,17,silver);const ring=mesh(new T.TorusGeometry(102,5,10,110),steel,station,side*117,0,0);ring.scale.set(.88,.43,1.1);ring.rotation.y=side*.18;const rim=mesh(new T.TorusGeometry(102,1.3,6,110),blue,station,side*117,-5,0);rim.scale.copy(ring.scale);rim.rotation.copy(ring.rotation);}const ship=new T.Group();scene.add(ship);const nose=mesh(new T.ConeGeometry(5,24,8),silver,ship);nose.rotation.x=-Math.PI/2;box(ship,0,0,5,12,4,18,dark);box(ship,0,2,-4,6,3,8,glass);for(let side of [-1,1]){box(ship,side*8,0,4,9,1.5,12,steel);const engine=cyl(ship,side*4,-1,13,2.3,4,blue);engine.rotation.x=Math.PI/2;}const hangar=new T.Group();hangar.position.set(0,-12,-260);scene.add(hangar);box(hangar,0,-3,0,65,2,70,steel);for(let side of [-1,1]){box(hangar,side*30,10,0,3,25,65,silver);for(let z=-28;z<=28;z+=8)box(hangar,side*28,11,z,.2,7,4,blue);}box(hangar,0,22,-32,64,4,5,silver);for(let x=-25;x<=25;x+=10)box(hangar,x,-1,0,.6,.15,55,orange);const interior=new T.Group();scene.add(interior);interior.visible=false;box(interior,0,-2,-10,58,2,80,steel);box(interior,0,18,-10,58,2,80,dark);for(let side of [-1,1]){box(interior,side*28,8,-10,2,20,80,silver);for(let z=-43;z<=25;z+=9){box(interior,side*27,10,z,.2,6,5,glass);box(interior,side*26.8,16,z,.2,.5,6,blue);}}for(let z=-42;z<=18;z+=8){box(interior,-10,-.8,z,.4,.1,5,blue);box(interior,10,-.8,z,.4,.1,5,blue);}box(interior,0,5,27,18,10,15,dark);box(interior,0,-.5,13,13,.6,15,silver);box(interior,0,6,-47,19,15,1,dark);for(let x of [-10,10])box(interior,x,6,-46,1,16,2,orange);const finalShip=new T.Group();interior.add(finalShip);finalShip.position.set(0,.5,-32);finalShip.scale.setScalar(.65);const finalNose=mesh(new T.ConeGeometry(3.4,13,8),silver,finalShip);finalNose.rotation.x=-Math.PI/2;finalNose.position.z=-2.5;box(finalShip,0,0,1.8,9.5,1.6,5,steel);box(finalShip,0,1.2,-1.2,4.2,2.1,5.6,glass);for(const side of [-1,1]){box(finalShip,side*5.4,-.2,2,5.4,.8,8,dark);const thruster=mesh(new T.CylinderGeometry(1.2,1.2,2.8,12),blue,finalShip);thruster.rotation.x=Math.PI/2;thruster.position.set(side*2.8,-.55,5.8);}box(finalShip,0,-1.15,2.4,3.8,.35,4.2,silver);const titleCanvas=document.createElement('canvas');titleCanvas.width=1024;titleCanvas.height=256;const ctx=titleCanvas.getContext('2d');ctx.font='bold 116px Arial';ctx.textAlign='center';ctx.fillStyle='#f0fbff';ctx.fillText('STARFALL',512,145);ctx.font='28px Arial';ctx.fillStyle='#70dbff';ctx.fillText('MISSION 01 // INFILTRATION',512,206);const title=mesh(new T.PlaneGeometry(24,6),new T.MeshBasicMaterial({map:new T.CanvasTexture(titleCanvas),transparent:true,depthWrite:false}),interior,0,10,-44);title.visible=false;const script=[[0,11,'Earth fell long before you were born. The machines took our cities, our armies, and eventually our world.'],[11,22,'In 2575, they constructed Starfall. A station built entirely by robots, for robots.'],[22,34,'For decades, its central core has coordinated the empire\u2019s operations across the solar system.'],[34,45,'Humanity is almost gone. The few who remain have no army capable of fighting back.'],[45,57,'But there is something inside that station. Something the machines have spent generations protecting.'],[57,68,'Find it, and we might have a chance to take Earth back.'],[68,79,'Docking clamps engaged. Atmosphere stable. Starfall security scanners are coming online.'],[79,91,'You are the only human aboard. Stay quiet. Reach the security network. This is bigger than survival.']];let running=false,muted=false,startAt=0,last=-1,frame=0;const smooth=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);},mix=(a,b,t)=>a+(b-a)*smooth(t);function voice(text){if(!muted)window.parent.postMessage({type:'starfall-nova-line',text},'*');}function end(){if(window.parent!==window)window.parent.postMessage({type:'starfall-cutscene-ended'},'*');running=false;cancelAnimationFrame(frame);$('chapter').textContent='MISSION 01 \u2014 INFILTRATE STARFALL';$('speaker').textContent='NOVA \u2014 ONBOARD AI';$('line').textContent='Your mission begins here. Find the security network.';$('skip').disabled=true;$('skip').textContent='FINISHED';title.visible=true;renderer.render(scene,camera);}function tick(){if(!running)return;const t=(performance.now()-startAt)/1000;$('progress').style.width=Math.min(100,t/92*100)+'%';const i=script.findIndex(v=>t>=v[0]&&t<v[1]);if(i!==last){last=i;$('speaker').textContent=i<0?'':'NOVA \u2014 ONBOARD AI';$('line').textContent=i<0?'':script[i][2];if(i>=0)voice(script[i][2]);}if(t<68){interior.visible=false;station.visible=true;ship.visible=true;hangar.visible=true;let v=smooth(t/68);ship.position.set(mix(-95,0,v),mix(-25,-7,v),mix(145,-235,v));ship.rotation.y=mix(.25,0,v);station.rotation.y=Math.sin(t*.015)*.07;if(t<20){camera.position.set(mix(-170,-75,t/20),mix(75,35,t/20),mix(180,135,t/20));camera.lookAt(0,0,-330);}else if(t<45){let q=(t-20)/25;camera.position.set(mix(-60,45,q),mix(25,13,q),mix(150,70,q));camera.lookAt(ship.position.x,ship.position.y,ship.position.z-110);}else{let q=(t-45)/23;camera.position.set(mix(45,10,q),mix(18,7,q),mix(70,-190,q));camera.lookAt(ship.position.x,ship.position.y,ship.position.z-20);}$('chapter').textContent=t<12?'EARTH \u2014 AFTER THE TAKEOVER':t<35?'STARFALL STATION \u2014 BUILT 2575':t<57?'THE MACHINE EMPIRE':'UNAUTHORIZED APPROACH';}else{interior.visible=true;station.visible=false;ship.visible=false;hangar.visible=false;title.visible=true;{const q=(t-68)/24;camera.position.set(0,mix(8,2,q),mix(31,-14,q));camera.lookAt(0,mix(5,3,q),mix(-30,-45,q));}$('chapter').textContent=t<79?'DOCKING COMPLETE \u2014 CENTRAL CORE':'MISSION 01 \u2014 INFILTRATION';}earth.rotation.y=t*.001;renderer.render(scene,camera);if(t>=92){end();return;}frame=requestAnimationFrame(tick);}function start(){$('startScreen').style.display='none';$('tools').style.display='flex';$('skip').disabled=false;$('skip').textContent='SKIP \u25b6';title.visible=false;running=true;last=-1;startAt=performance.now();tick();}window.addEventListener('message',e=>{if(e.data&&e.data.type==='starfall-start-cutscene')start();});$('start').onclick=start;$('replay').onclick=start;$('skip').onclick=end;$('voice').onclick=()=>{muted=!muted;$('voice').textContent=muted?'VOICE OFF':'VOICE ON';if(muted&&'speechSynthesis'in window)speechSynthesis.cancel();};window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});camera.position.set(-160,80,170);camera.lookAt(station.position);renderer.render(scene,camera);})();\n<\/script><\/body><\/html>\n";
+let introWatched=false,cinematicActive=false,novaMuted=false,lastHintAt=0,gameStarted=false;
+const cinematicLayer=document.getElementById('cinematicLayer'),cinematicFrame=document.getElementById('cinematicFrame');
+function launchCinematic(){
+ cinematicActive=true;cinematicLayer.style.display='block';cinematicFrame.srcdoc=cinematicHtml;
+ cinematicFrame.addEventListener('load',()=>{try{cinematicFrame.contentWindow.postMessage({type:'starfall-start-cutscene'},'*');}catch(e){}},{once:true});
+}
+function finishCinematic(){
+ if(!cinematicActive)return;
+ ++novaSpeechToken;try{speechSynthesis.cancel();}catch(e){}cinematicActive=false;introWatched=true;
+ cinematicLayer.style.display='none';cinematicFrame.srcdoc='';
+ play.textContent='CLICK TO ENTER GAME';
+ $('menuTitle').textContent='STARFALL — READY';
+ $('menuSub').textContent='Docking complete. Click below to enter the station and activate mouse aiming. Press Escape to pause.';
+ overlay.style.display='grid';
+}
+window.addEventListener('message',e=>{if(e.source!==cinematicFrame.contentWindow)return;if(e.data?.type==='starfall-cutscene-ended')finishCinematic();if(e.data?.type==='starfall-nova-line'&&typeof e.data.text==='string')novaSpeak(e.data.text);});
+document.getElementById('cinematicSkip').addEventListener('click',finishCinematic);
+document.getElementById('novaVoice').addEventListener('click',()=>{
+ novaMuted=!novaMuted;document.getElementById('novaVoice').textContent=novaMuted?'NOVA VOICE: OFF · H FOR HINT':'NOVA VOICE: ON · H FOR HINT';
+ if(novaMuted&&'speechSynthesis'in window)speechSynthesis.cancel();
+});
+// Single voice owner for cinematic and gameplay. Do not cancel a new utterance before it starts.
+let novaUtterance=null,novaVoiceStarted=false,novaSpeechToken=0;
+function novaSpeak(line,testing=false){
+ if(novaMuted||!('speechSynthesis' in window)){
+  if(testing)$('novaTestStatus').textContent='Speech synthesis unavailable or NOVA muted.';
+  return;
+ }
+ const synth=window.speechSynthesis,token=++novaSpeechToken;
+ const status=t=>{if(testing&&token===novaSpeechToken)$('novaTestStatus').textContent=t;};
+ const voices=synth.getVoices();
+ // Some installed voices never start in Chrome. Try the system default first, then other English voices.
+ const candidates=[null,...voices.filter(v=>v.lang&&v.lang.toLowerCase().startsWith('en')&&!v.voiceURI.startsWith('Google')),...voices.filter(v=>v.lang&&v.lang.toLowerCase().startsWith('en')&&v.voiceURI.startsWith('Google'))];
+ let attempt=0;
+ function speakNext(){
+  if(token!==novaSpeechToken||novaMuted)return;
+  if(attempt>=candidates.length){status('Speech engine failed to start all available voices.');return;}
+  const chosen=candidates[attempt++];
+  const u=new SpeechSynthesisUtterance(line);
+  novaUtterance=u;u.lang='en-US';u.rate=.94;u.pitch=1.04;u.volume=1;
+  if(chosen)u.voice=chosen;
+  let started=false,finished=false;
+  u.onstart=()=>{started=true;novaVoiceStarted=true;status('NOVA speaking ('+(chosen?.name||'system default')+').');};
+  u.onend=()=>{finished=true;if(started)status('Voice test finished.');};
+  u.onerror=e=>{finished=true;if(token===novaSpeechToken&&!started){status('Trying another voice after '+(e.error||'error')+'…');setTimeout(speakNext,80);}};
+  try{ synth.resume();synth.speak(u); }catch(e){finished=true;setTimeout(speakNext,80);}
+  // Chromebook voices may need several seconds to initialize, especially during boss scenes.
+  // Never cancel a queued utterance merely because onstart is delayed.
+  setTimeout(()=>{if(token===novaSpeechToken&&!started&&!finished&&!synth.speaking&&!synth.pending){status('Trying another available voice…');setTimeout(speakNext,100);}},6500);
+ }
+ try{synth.cancel();}catch(e){}
+ novaVoiceStarted=false;status('Testing available speech voices…');
+ // Delay speech slightly after cancel so Chrome can reset its queue.
+ setTimeout(speakNext,120);
+}
+$('novaTest').addEventListener('click',()=>{novaMuted=false;$('novaVoice').textContent='NOVA VOICE: ON · H FOR HINT';novaSpeak('NOVA online. Audio systems check complete.',true);});
+function missionHint(){
+ const hints=[
+ 'First, eliminate the security patrol. We need a clear route to the eastern security terminal. Aim with your mouse and fire to defend yourself.',
+ 'The eastern security terminal is marked on your display. Follow the objective marker, get close, and press E. This will give me access to the station security logs.',
+ 'The security logs revealed a restricted engineering route. Follow the marker to the navigation uplink and press E to identify which terminal controls access.',
+ 'The navigation uplink identifies an engineering access route. Reach the marked bridge terminal and press E to retrieve its clearance codes.',
+ 'We have the access codes. Follow the marker to the northern research airlock and press E to open the way into the research deck.',
+ 'The research terminal contains Level 3 clearance codes. Press E to download them so we can open the inner-core security door.',
+ 'Protect the research terminal while I decrypt the Level 3 clearance codes. Defeat the responding robots.'
+ ];
+ const text=missionStage===7?'Return to the main level. The Level 3 security door is on the southern wall. Follow the waypoint and press E to unlock it.':missionStage===8?'The inner security door is open. Enter the new hallway and prepare to fight through three checkpoints.':missionStage===9?'Fight through the security robots in these hallways. The final room contains Sergeant Grahm. Use cover against heavy units.':missionStage===10?'Sergeant Grahm is heavily armored. Keep moving, use cover, and fire at his exposed power systems.':missionStage===11?'Sergeant Grahm is defeated. Captain Argon has issued a warning. Mission three is complete.':hints[Math.min(missionStage,hints.length-1)];
+ say('NOVA // AI COMPANION',text,7000);
+}
+
+if(!window.THREE){$('error').textContent='3D engine failed to load. Check internet and refresh.';play.disabled=true;return;}
+$('error').textContent='Ready. Performance-optimized build.';
+const T=THREE,scene=new T.Scene();scene.background=new T.Color(0x02050f);scene.fog=new T.FogExp2(0x101b31,.003);
+const camera=new T.PerspectiveCamera(76,innerWidth/innerHeight,.1,230);camera.rotation.order='YXZ';
+const renderer=new T.WebGLRenderer({antialias:false,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1));renderer.setSize(innerWidth,innerHeight);$('quality').addEventListener('change',()=>renderer.setPixelRatio(Math.min(devicePixelRatio,Number($('quality').value))));renderer.shadowMap.enabled=false;renderer.outputColorSpace=T.SRGBColorSpace;document.body.appendChild(renderer.domElement);
+scene.add(new T.HemisphereLight(0xe1f5ff,0x3e617d,2.2));const sun=new T.DirectionalLight(0xffffff,2.9);sun.position.set(12,32,9);sun.castShadow=false;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-65;sun.shadow.camera.right=65;sun.shadow.camera.top=65;sun.shadow.camera.bottom=-65;scene.add(sun);renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.55;renderer.physicallyCorrectLights=true;
+const material=(c,metalness=0,roughness=.8)=>new T.MeshStandardMaterial({color:c,metalness,roughness});
+const glow=(c,intensity=1.8)=>new T.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:intensity,metalness:.2,roughness:.24});
+const M={floor:material(0x24364b,.72,.45),floor2:material(0x152638,.8,.4),trim:material(0x647c90,.7,.34),wall:material(0x273a4f,.67,.48),wall2:material(0x122335,.78,.4),ceiling:material(0x101f31,.7,.5),panel:material(0x324b60,.72,.4),gold:material(0xd9a74d,.6,.36),cyan:glow(0x42eaff,2.9),orange:glow(0xff6a3a,2.2),red:glow(0xff334e,2.3),white:glow(0xd5f7ff,2),metal:material(0x455b70,.75,.3),dark:material(0x162738,.7,.4),robot:material(0xa03c4c,.65,.4),heavy:material(0x5c3c75,.75,.35),eye:new T.MeshBasicMaterial({color:0x54faff}),danger:new T.MeshBasicMaterial({color:0xff637c}),crate:material(0x52677b,.6,.5),glass:new T.MeshPhysicalMaterial({color:0x5fb4e9,metalness:.2,roughness:.12,transparent:true,opacity:.25,side:T.DoubleSide})};
+// Procedural high-resolution PBR surface maps (generated locally; no image downloads).
+function panelTexture(base,accent,seed=1){
+ const c=document.createElement('canvas');c.width=c.height=512;const g=c.getContext('2d');
+ g.fillStyle=base;g.fillRect(0,0,512,512);
+ let n=seed;const rnd=()=>{n=(n*1664525+1013904223)>>>0;return n/4294967296;};
+ for(let y=0;y<512;y+=64)for(let x=0;x<512;x+=64){
+  g.fillStyle=rnd()>.5?'#ffffff09':'#00000018';g.fillRect(x+3,y+3,58,58);
+  g.strokeStyle=accent;g.globalAlpha=.2+rnd()*.18;g.lineWidth=2;g.strokeRect(x+4,y+4,56,56);g.globalAlpha=1;
+  g.fillStyle='#cceeff55';for(let k=0;k<2;k++){g.fillRect(x+10+k*40,y+10,3,3);g.fillRect(x+10+k*40,y+51,3,3);}
+  if(rnd()>.7){g.fillStyle='#75dfff33';g.fillRect(x+18,y+30,28,3);}
+ }
+ for(let i=0;i<4000;i++){let v=Math.floor(rnd()*255);g.fillStyle=`rgba(${v},${v},${v},.025)`;g.fillRect(rnd()*512,rnd()*512,2,2);}
+ const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;tex.wrapS=tex.wrapT=T.RepeatWrapping;tex.anisotropy=renderer.capabilities.getMaxAnisotropy();return tex;
+}
+M.floor.map=panelTexture('#354b60','#a9d7e8',4);M.floor.color.set(0xffffff);M.floor.needsUpdate=true;
+M.wall.map=panelTexture('#425970','#95c7e4',9);M.wall.color.set(0xffffff);M.wall.needsUpdate=true;
+M.panel.map=panelTexture('#54728a','#c0e4ff',17);M.panel.color.set(0xffffff);M.panel.needsUpdate=true;
+M.ceiling.map=panelTexture('#2b4259','#7197b9',23);M.ceiling.color.set(0xffffff);M.ceiling.needsUpdate=true;
+M.crate.map=panelTexture('#576f84','#b2d7e8',31);M.crate.color.set(0xffffff);M.crate.needsUpdate=true;
+// High-frequency metal detail: bump maps and a physically based clearcoat finish.
+function detailBump(seed){const c=document.createElement('canvas');c.width=c.height=512;const g=c.getContext('2d');g.fillStyle='#777';g.fillRect(0,0,512,512);let n=seed;const rnd=()=>{n=(n*1664525+1013904223)>>>0;return n/4294967296;};for(let i=0;i<2500;i++){let v=90+Math.floor(rnd()*90);g.fillStyle=`rgb(${v},${v},${v})`;g.fillRect(rnd()*512,rnd()*512,1+rnd()*3,1+rnd()*3);}for(let i=0;i<8;i++){g.strokeStyle=i%2?'#aaa':'#444';g.lineWidth=2;g.strokeRect(i*64+3,i*64+3,506-i*128,506-i*128);}const t=new T.CanvasTexture(c);t.wrapS=t.wrapT=T.RepeatWrapping;return t;}
+for(const [i,m] of [M.floor,M.wall,M.panel,M.ceiling,M.crate].entries()){m.bumpMap=detailBump(100+i);m.bumpScale=.12;m.roughness=Math.max(.23,m.roughness-.1);m.needsUpdate=true;}
+
+// Deep space sky: thousands of stars, nebula, and a large planet outside the glass.
+const starPositions=[];let sr=314159265;const rand=()=>{sr=(sr*1664525+1013904223)>>>0;return sr/4294967296;};
+for(let i=0;i<1800;i++){let a=rand()*Math.PI*2,v=rand()*2-1,r=175+rand()*95,q=Math.sqrt(1-v*v);starPositions.push(Math.cos(a)*q*r,v*r,Math.sin(a)*q*r);}
+const starsGeo=new T.BufferGeometry();starsGeo.setAttribute('position',new T.Float32BufferAttribute(starPositions,3));
+scene.add(new T.Points(starsGeo,new T.PointsMaterial({color:0xe6f5ff,size:.85,sizeAttenuation:false,transparent:true,opacity:.95,depthWrite:false})));
+const planetMat=new T.MeshStandardMaterial({color:0x608fd2,roughness:.93,emissive:0x142b57,emissiveIntensity:.6});
+const planet=new T.Mesh(new T.SphereGeometry(43,64,48),planetMat);planet.position.set(-170,35,-105);scene.add(planet);
+const atmosphere=new T.Mesh(new T.SphereGeometry(45,48,32),new T.MeshBasicMaterial({color:0x5a9dff,transparent:true,opacity:.12,side:T.BackSide,depthWrite:false}));atmosphere.position.copy(planet.position);scene.add(atmosphere);
+for(let i=0;i<5;i++){let ring=new T.Mesh(new T.TorusGeometry(43.2+rand()*1.2,.28+rand()*.45,6,96),new T.MeshBasicMaterial({color:i%3===0?0xe7f3ff:0x8cb7e5,transparent:true,opacity:.15+rand()*.2}));ring.position.copy(planet.position);ring.rotation.set(rand()*2,rand()*2,rand()*2);scene.add(ring);}
+const moon=new T.Mesh(new T.SphereGeometry(12,32,24),material(0xb9b6c6,.15,.9));moon.position.set(125,24,-155);scene.add(moon);
+const cube=new T.BoxGeometry(1,1,1),colliders=[],colliderMeshes=[],decor=[];
+function box(x,y,z,w,h,d,mat,parent=scene,shadow=false){const o=new T.Mesh(cube,mat);o.position.set(x,y,z);o.scale.set(w,h,d);o.castShadow=shadow;o.receiveShadow=true;parent.add(o);return o;}
+function solid(x,y,z,w,h,d,mat){const o=box(x,y,z,w,h,d,mat,scene,true);colliders.push({x,y,z,w,h,d});colliderMeshes.push(o);return o;}
+const HALF=62;
+// Horizontal player collision: only physical obstacles reaching the player body count.
+// Decorative light strips, overhead beams and ceiling fixtures never block movement.
+function blocked(x,z,r=.38){
+ if(Math.abs(x)>61.2-r||z>61.2-r&&!(missionStage>=8&&Math.abs(x)<8-r&&z<216)||z>215-r)return true;
+ if(z>63&&z<216){if(missionStage<8||Math.abs(x)>(z<164?8:23)-r)return true;}
+ if(z<-62){if(!doorOpen||doorOpening<.8||Math.abs(x)>29.3-r||z<-124+r)return true;}
+ if(Math.hypot(x,z)<3.05+r)return true;
+ if(z<=-60.8&&z>=-63.2&&(!doorOpen||doorOpening<.8||Math.abs(x)>4.05-r))return true;
+ for(const b of colliders){
+  if(b.y+b.h/2<.35||b.y-b.h/2>2.05)continue;
+  if(Math.abs(x-b.x)<b.w/2+r&&Math.abs(z-b.z)<b.d/2+r)return true;
+ }
+ return false;
+}
+// Starfall is a fully enclosed ship: five connected longitudinal corridors,
+// two cross corridors, hangar bays and an illuminated central reactor atrium.
+box(0,-.32,0,128,.6,128,M.floor2);
+box(0,10.3,0,128,.7,128,M.ceiling);
+for(let i=-60;i<=60;i+=4){
+ box(i,.035,0,.07,.035,126,M.trim);
+ box(0,.037,i,126,.035,.07,M.trim);
+}
+const lanes=[-48,-24,0,24,48];
+// Walkable corridors are 10m wide. Each is lined with raised deck strips.
+for(const p of lanes){
+ box(p,.035,0,10,.08,124,M.floor);
+ box(0,.036,p,124,.08,10,M.floor);
+ for(const edge of [-4.6,4.6]){
+  box(p+edge,.12,0,.13,.06,124,M.cyan);
+  box(0,.12,p+edge,124,.06,.13,M.cyan);
+ }
+ for(let t=-57;t<=57;t+=6){
+  box(p,.105,t,5,.035,.16,M.trim);
+  box(t,.106,p,.16,.035,5,M.trim);
+ }
+}
+// Walls between corridors: openings at intersections permit free exploration.
+// These form modular 14m compartments with open entrances on the lane side.
+for(let i=0;i<4;i++)for(let j=0;j<4;j++){
+ const cx=-36+i*24,cz=-36+j*24;
+ const bay=(i+j*3)%5;
+ box(cx,.045,cz,13,.06,13,bay===0?M.panel:M.floor);
+ // Open-plan architecture: only slender supports, no enclosed maze rooms.
+ for(const sx of [-1,1])for(const sz of [-1,1]){
+  const x=cx+sx*8,z=cz+sz*8;
+  box(x,4.65,z,.55,9.3,.55,M.trim);
+  box(x,8.9,z,1.3,.3,1.3,M.white);
+ }
+ // Low waist-height partitions create cover without obstructing long views.
+ if((i+j)%3===0){
+  solid(cx+6, .55,cz, .55,1.1,4,M.panel);
+  box(cx+6,1.13,cz,.7,.08,4.2,M.cyan);
+ }
+ // Bay-specific props, not generic outdoor buildings.
+ if(bay===0){
+  // Cargo bay: containers and luminous shipping labels.
+  for(const [ox,oz] of [[-3,-3],[3,3]] ){
+   solid(cx+ox,1.1,cz+oz,2.9,2.2,2.9,M.crate);
+   box(cx+ox,1.5,cz+oz-1.33,1.8,.14,.06,M.orange);
+   for(let n=-1;n<=1;n++)box(cx+ox+n*.7,1.1,cz+oz-1.36,.08,1.8,.06,M.trim);
+  }
+ }else if(bay===1){
+  // Engineering room with glowing coolant towers.
+  for(const ox of [-3.2,3.2]){
+   const core=new T.Mesh(new T.CylinderGeometry(1.05,1.05,5,12),M.glass);
+   core.position.set(cx+ox,3,cz);scene.add(core);
+   const inside=new T.Mesh(new T.CylinderGeometry(.45,.45,4.8,10),M.cyan);
+   inside.position.set(cx+ox,3,cz);scene.add(inside);
+   box(cx+ox,.65,cz,2.9,.5,2.9,M.dark);
+   box(cx+ox,5.55,cz,2.9,.4,2.9,M.trim);
+  }
+ }else if(bay===2){
+  // Tactical station: illuminated holo-table with a transparent display.
+  solid(cx,1.05,cz,4,2.1,3,M.dark);
+  box(cx,2.18,cz,4.3,.13,3.3,M.cyan);
+  box(cx,3.1,cz,3,.07,2,M.glass);
+  for(const ox of [-5,5])box(cx+ox,2.9,cz,1,.12,3,M.orange);
+ }else if(bay===3){
+  // Med bay: wall pods and low obstacles.
+  for(const ox of [-4,4]){
+   solid(cx+ox,.65,cz,2.9,1.3,4,M.panel);
+   box(cx+ox,1.34,cz,2.2,.12,3.6,M.white);
+  }
+ }else{
+  // Armory: racks and crates along the far wall.
+  for(const ox of [-4,0,4]){
+   solid(cx+ox,1,cz+3,2,2,2,M.crate);
+   box(cx+ox,2.06,cz+3,2.1,.12,2.1,M.orange);
+  }
+ }
+ // Overhead bay panels, recessed light bars, and detailed ceiling ribs.
+ box(cx,9.7,cz,14,.28,14,M.wall2);
+ for(const off of [-4.5,4.5]){
+  box(cx+off,9.48,cz,.3,.08,11,M.white);
+  box(cx,9.48,cz+off,11,.08,.3,M.trim);
+ }
+}
+// Panoramic outer hull: enormous real openings with lightly tinted glass.
+// Only the structural frames and lower kickplates are opaque.
+const spaceGlass=new T.MeshPhysicalMaterial({color:0x9ddcff,metalness:0,roughness:.045,transparent:true,opacity:.11,depthWrite:false,side:T.DoubleSide});
+for(let v=-56;v<=56;v+=14){
+ for(const side of [-1,1]){
+  const x=side*62.9,z=side*62.9;
+  solid(x,1.1,v,1.4,2.2,13.8,M.wall);
+  if(!(side===-1&&Math.abs(v)<7))solid(v,1.1,z,13.8,2.2,1.4,M.wall);
+  else {solid(-10,1.1,z,6.3,2.2,1.4,M.wall);solid(10,1.1,z,6.3,2.2,1.4,M.wall);}
+  box(x,8.9,v,1.5,2.1,13.8,M.wall);
+  if(!(side===-1&&Math.abs(v)<7))box(v,8.9,z,13.8,2.1,1.5,M.wall);
+  else {box(-10,8.9,z,6.3,2.1,1.5,M.wall);box(10,8.9,z,6.3,2.1,1.5,M.wall);}
+  solid(x,5,v-7,.95,8.5,.9,M.trim);
+  if(!(side===-1&&Math.abs(v-7)<5))solid(v-7,5,z,.9,8.5,.95,M.trim);
+  box(side*62.35,5.05,v,.08,5.9,13.1,spaceGlass);
+  if(!(side===-1&&Math.abs(v)<7))box(v,5.05,side*62.35,13.1,5.9,.08,spaceGlass);
+  box(side*62.2,2.25,v,.12,.13,12.9,M.cyan);
+  box(v,2.25,side*62.2,12.9,.13,.12,M.cyan);
+  box(side*62.2,7.95,v,.12,.13,12.9,M.white);
+  box(v,7.95,side*62.2,12.9,.13,.12,M.white);
+ }
+}
+// Reinforced corners
+for(const x of [-62,62])for(const z of [-62,62])solid(x,5,z,2,10,2,M.trim);
+// Corridors get strong overhead fixtures, bulkhead frames and floor guidance.
+for(const p of lanes)for(let t=-56;t<=56;t+=12){
+ const junction=lanes.some(q=>Math.abs(t-q)<6);
+ for(const axis of [0,1]){
+  if(axis===0){
+   box(p,9.75,t,6,.18,1,M.trim);
+   box(p,9.56,t,4.5,.12,.38,M.white);
+   if(!junction){box(p-5,5,t,.38,9.6,.48,M.trim);box(p+5,5,t,.38,9.6,.48,M.trim);}
+  }else{
+   box(t,9.75,p,1,.18,6,M.trim);
+   box(t,9.56,p,.38,.12,4.5,M.white);
+   if(!junction){box(t,5,p-5,.48,9.6,.38,M.trim);box(t,5,p+5,.48,9.6,.38,M.trim);}
+  }
+ }
+ if(Math.abs(t)%24===8){}
+}
+// Broad white ceiling light panels, with protective frames.
+for(let x=-48;x<=48;x+=24)for(let z=-48;z<=48;z+=24){
+ box(x,9.92,z,10,.1,3.2,M.white);
+ box(x,9.84,z-1.7,10.5,.16,.18,M.trim);
+ box(x,9.84,z+1.7,10.5,.16,.18,M.trim);
+}
+// Directional floor chevrons and accent lines for stronger visual depth.
+for(const p of lanes)for(let t=-56;t<=56;t+=8){
+ box(p-.9,.15,t,.12,.035,1.4,M.white);
+ box(p+.9,.15,t,.12,.035,1.4,M.white);
+}
+// Central reactor chamber: suspended energy column with rotating rings.
+const reactor=new T.Group();reactor.position.set(0,0,0);scene.add(reactor);
+const ringMat=M.cyan;
+for(const y of [2.9,5.4,8]){
+ const ring=new T.Mesh(new T.TorusGeometry(2.9,.12,8,48),ringMat);
+ ring.position.y=y;ring.rotation.x=Math.PI/2;reactor.add(ring);decor.push(ring);
+}
+const reactorCore=new T.Mesh(new T.CylinderGeometry(.72,.72,7,18),M.cyan);
+reactorCore.position.y=5.1;reactor.add(reactorCore);
+box(0,.65,0,5,1.3,5,M.dark,reactor);
+box(0,9.1,0,5,.8,5,M.trim,reactor);
+const reactorLight={intensity:5};
+// Cover in corridors, spaced away from player spawn and doorways.
+for(const [x,z] of [[-34,0],[34,0],[0,-34],[0,34],[-48,15],[48,-15],[15,-48],[-15,48]]){
+ solid(x,.8,z,2.9,1.6,2.2,M.crate);
+ box(x,1.65,z,2.9,.1,2.2,M.trim);
+ box(x,.85,z-1.12,1.9,.15,.05,M.orange);
+}
+// Floor hazard markings around the central reactor.
+for(const side of [-1,1]){
+ box(side*7,.115,0,.35,.03,10,M.gold);
+ box(0,.115,side*7,10,.03,.35,M.gold);
+}
+// More detailed ship: angled armor plates, beveled conduits, signs, observation equipment.
+const bevelGeo=new T.CylinderGeometry(.16,.16,1,10);
+for(let x=-54;x<=54;x+=12){for(const z of [-59,59]){
+ const p=box(x,4.8,z,7,7.4,.38,M.trim);p.rotation.z=(x%24===0?.05:-.05);
+ box(x,8.3,z,8,.12,.55,M.cyan);box(x,.7,z,8,.12,.55,M.gold);
+ box(x,4.3,z+(z>0?-.45:.45),4.8,2,.12,M.glass);
+}}
+for(let z=-54;z<=54;z+=12){for(const x of [-59,59]){
+ box(x,8.3,z,.55,.12,8,M.cyan);box(x,.7,z,.55,.12,8,M.gold);
+ box(x,4.3,z, .12,2,4.8,M.glass);
+}}
+for(let x=-48;x<=48;x+=24){for(let z=-48;z<=48;z+=24){
+ if(Math.hypot(x,z)<12)continue;
+ 
+ box(x,9.8,z,7,.12,1.2,M.white);box(x,9.6,z,7.4,.08,1.5,M.trim);
+ box(x,0.12,z,6,.05,.08,M.cyan);
+}}
+function signage(label,x,z,rot=0){const c=document.createElement('canvas');c.width=512;c.height=128;const g=c.getContext('2d');g.fillStyle='#0a263a';g.fillRect(0,0,512,128);g.strokeStyle='#56eaff';g.lineWidth=8;g.strokeRect(4,4,504,120);g.font='bold 43px Arial';g.fillStyle='#b4faff';g.textAlign='center';g.fillText(label,256,81);const t=new T.CanvasTexture(c);const m=new T.MeshBasicMaterial({map:t,side:T.DoubleSide});const p=new T.Mesh(new T.PlaneGeometry(5.5,1.38),m);p.position.set(x,5,z);p.rotation.y=rot;scene.add(p);}
+signage('OBSERVATION',-25,-47);signage('REACTOR CORE',12,18);signage('BRIDGE  >>',48,23,Math.PI/2);signage('STARFALL // 07',-48,-20,Math.PI/2);
+// Holographic mission consoles; accessible without blocking the original arena.
+const consoles=[];
+function consoleUnit(x,z,label,color){const g=new T.Group();g.position.set(x,0,z);scene.add(g);box(0,.75,0,1.6,1.5,.9,M.dark,g);box(0,1.45,-.18,1.7,.12,1.2,M.trim,g);const screen=box(0,2.12,-.33,1.65,1.15,.12,glow(color,1.2),g);screen.rotation.x=-.17;box(0,2.12,-.42,1.2,.12,.07,M.white,g);const ring=new T.Mesh(new T.TorusGeometry(.8,.055,8,48),glow(color,2));ring.position.set(0,3.05,0);ring.rotation.x=Math.PI/2;g.add(ring);consoles.push({g,ring,label});return g;}
+consoleUnit(18,13,'SECURITY TERMINAL',0x39e9ff);
+consoleUnit(-38,-37,'NAVIGATION UPLINK',0xffb86b);
+consoleUnit(43,36,'BRIDGE TRANSMITTER',0x99ff7a);
+// MISSION 02: sealed north airlock opens onto the research and weapons deck.
+let doorOpen=false,doorOpening=0,annexRevealed=false;
+const doorX=0,doorZ=-62;
+const doorGroup=new T.Group();doorGroup.position.set(0,0,doorZ);scene.add(doorGroup);
+box(-5,4.8,0,1.2,9.6,1.8,M.trim,doorGroup);
+box(5,4.8,0,1.2,9.6,1.8,M.trim,doorGroup);
+box(0,9.1,0,11,1.1,1.8,M.trim,doorGroup);
+const doorLeft=box(-2.35,4.3,0,4.65,8.1,.8,M.metal,doorGroup);
+const doorRight=box(2.35,4.3,0,4.65,8.1,.8,M.metal,doorGroup);
+box(-2.35,4.3,-.44,3.7,.12,.05,M.orange,doorLeft);
+box(2.35,4.3,-.44,3.7,.12,.05,M.orange,doorRight);
+signage('RESEARCH AIRLOCK',0,-60,0);
+// The annex is on the other side of the airlock, not another overlay on the old map.
+box(0,-.32,-94,64,.6,64,M.floor2);
+box(0,10.3,-94,64,.7,64,M.ceiling);
+for(const x of [-30,30]){
+ box(x,5,-94,1.1,10,64,M.trim);
+ for(let z=-119;z<=-68;z+=12)box(x+(x<0?.6:-.6),5,z,.16,5,6,M.glass);
+}
+box(0,5,-126,64,10,1.2,M.wall);
+for(let z=-120;z<=-69;z+=12){
+ box(0,.08,z,60,.13,.14,M.cyan);
+ box(0,9.7,z,54,.15,.6,M.white);
+}
+for(const x of [-20,20]){
+ for(const z of [-88,-109]){
+  box(x,1.2,z,4,2.4,3,M.crate);
+  box(x,2.45,z,3,.1,2.2,M.orange);
+ }
+}
+for(const x of [-15,15]){
+ const pod=new T.Mesh(new T.CylinderGeometry(2.2,2.2,6,14),M.glass);
+ pod.position.set(x,3.4,-111);scene.add(pod);
+ const core=new T.Mesh(new T.CylinderGeometry(.8,.8,5,10),M.cyan);
+ core.position.set(x,3.4,-111);scene.add(core);
+}
+const annexConsole=consoleUnit(0,-115,'RESEARCH CORE',0xff9a4d);
+const doorTarget={g:doorGroup,label:'RESEARCH AIRLOCK'};
+for(let z=-59;z>=-78;z-=2)box(0,.10,z,2,.035,.18,M.cyan);
+for(const x of [-5.8,5.8])box(x,4.8,-62,.12,9.2,.3,M.cyan);
+// MISSION 03: route from the main deck into the armored inner core.
+// Cut a real opening through the southern hull. Remove geometry AND collider entries together.
+for(let i=colliders.length-1;i>=0;i--){const c=colliders[i];
+ if(c.z>61&&c.z<65&&Math.abs(c.x)<9){const m=colliderMeshes[i];if(m){scene.remove(m);colliderMeshes.splice(i,1);}colliders.splice(i,1);}}
+// Remove non-solid glass in the gateway (it should not look sealed when unlocked).
+for(const obj of [...scene.children])if(obj.isMesh&&obj.material===spaceGlass&&obj.position.z>61&&Math.abs(obj.position.x)<9)scene.remove(obj);
+const innerDoor=new T.Group();innerDoor.position.set(0,0,63);scene.add(innerDoor);
+box(-6,5,0,1.5,10,2,M.trim,innerDoor);box(6,5,0,1.5,10,2,M.trim,innerDoor);
+box(0,9.5,0,13,1,2,M.trim,innerDoor);
+const innerLeft=box(-2.75,4.5,0,5.5,9,.8,M.metal,innerDoor);
+const innerRight=box(2.75,4.5,0,5.5,9,.8,M.metal,innerDoor);
+const innerTarget={g:innerDoor,label:'LEVEL 3 SECURITY DOOR'};
+let innerUnlocked=false,innerDoorProgress=0,grahm=null,grahmDefeated=false,argonTriggered=false,mission3Wave=0,hallFinalAnnounced=false;
+// Three successive corridors, with cover and industrial detail.
+for(let z=70;z<=160;z+=30){
+ box(0,-.32,z,18,.6,30,M.floor2);box(0,10.3,z,18,.7,30,M.ceiling);
+ for(const side of [-1,1]){solid(side*9,5,z,1,10,30,M.wall2);box(side*8.4,7,z,.16,.28,28,M.cyan);}
+ for(let dz=-10;dz<=10;dz+=10){box(0,9.8,z+dz,10,.15,1.2,M.white);box(0,.1,z+dz,9,.12,.2,M.orange);}
+}
+// Cover is deliberately placed at corridor edges to keep a wide path for big robots.
+for(const [x,z] of [[-6,85],[6,102],[-6,122],[6,144]])solid(x,.9,z,2.5,1.8,3,M.crate);
+// A large, purpose-built command chamber for Grahm.
+box(0,-.32,187,48,.6,55,M.floor2);box(0,15.5,187,48,.7,55,M.ceiling);
+for(const side of [-1,1]){solid(side*24,7.5,187,1,15,55,M.wall);for(let z=169;z<210;z+=10)box(side*23.3,9,z,.15,4,5,M.glass);}
+solid(0,7.5,214.5,48,15,1,M.wall);
+for(const x of [-18,18])for(const z of [174,198]){solid(x,1.5,z,3,3,4,M.heavy);box(x,3.15,z,3.2,.2,4,M.orange);}
+for(let z=170;z<210;z+=8){box(0,15,z,28,.15,.7,M.white);box(0,.08,z,28,.09,.18,M.cyan);}
+const arenaTarget={g:new T.Group(),label:'GRAHM COMMAND CHAMBER'};arenaTarget.g.position.set(0,0,186);
+const innerThreshold={g:new T.Group(),label:'SECURITY HALLWAYS'};innerThreshold.g.position.set(0,0,78);
+const hallwayWaypoint={g:new T.Group(),label:'ADVANCE THROUGH SECURITY'};hallwayWaypoint.g.position.set(0,0,158);
+const grahmName=box(0,12,209,19,1.3,.3,M.danger);
+// More organic enemy silhouette and a less boxy gun casing.
+const bevelMaterial=new T.MeshPhysicalMaterial({color:0x9ab8c9,metalness:.88,roughness:.22,clearcoat:.8,clearcoatRoughness:.12});
+// Player view model: two weapons, grip and animated support hand.
+scene.add(camera);const view=new T.Group();camera.add(view);const gun=new T.Group();view.add(gun);
+const skin=material(0x9b715a),sleeve=material(0x2a3d51);
+const gunParts=[];
+const steel=new T.MeshStandardMaterial({color:0x87969d,metalness:.83,roughness:.3});
+const gunmetal=new T.MeshStandardMaterial({color:0x1c252b,metalness:.78,roughness:.38});
+const polymer=new T.MeshStandardMaterial({color:0x29363a,metalness:.15,roughness:.66});
+const brass=new T.MeshStandardMaterial({color:0xb99854,metalness:.8,roughness:.27});
+function weaponPart(x,y,z,w,h,d,m){const o=box(x,y,z,w,h,d,m,gun);gunParts.push(o);return o;}
+function cylinderPart(x,y,z,r1,r2,len,m,rotX=Math.PI/2){const o=new T.Mesh(new T.CylinderGeometry(r1,r2,len,12),m);o.position.set(x,y,z);o.rotation.x=rotX;gun.add(o);gunParts.push(o);return o;}
+function makeGun(type){
+ for(const p of gunParts){gun.remove(p);p.geometry.dispose();}gunParts.length=0;
+ const x=.33;
+ const tube=(y,z,r,len,m)=>cylinderPart(x,y,z,r,r,len,m);
+ if(type===0){
+  // VX-9: compact assault rifle, angular receiver, long ventilated rail, detachable curved magazine.
+  weaponPart(x,-.29,-.65,.35,.28,.65,gunmetal);
+  weaponPart(x,-.16,-.66,.35,.095,.67,steel);
+  weaponPart(x,-.28,-.35,.23,.19,.37,polymer);
+  weaponPart(x,-.37,-.18,.18,.19,.45,polymer);
+  weaponPart(x,-.45,-.62,.13,.32,.19,gunmetal);
+  weaponPart(x,-.59,-.68,.18,.37,.18,polymer);
+  weaponPart(x,-.73,-.73,.18,.09,.22,steel);
+  weaponPart(x,-.29,-1.23,.29,.22,.95,polymer);
+  weaponPart(x,-.16,-1.17,.29,.07,1.02,steel);
+  for(let i=0;i<8;i++)weaponPart(x,-.115,-.79-i*.14,.24,.025,.045,gunmetal);
+  for(const side of [-1,1])for(let i=0;i<6;i++)
+   weaponPart(x+side*.15,-.28,-.88-i*.13,.025,.065,.06,M.dark);
+  tube(-.29,-1.92,.065,1.07,steel);
+  tube(-.29,-2.49,.10,.19,gunmetal);
+  tube(-.29,-2.90,.058,.025,M.dark);
+  weaponPart(x,-.035,-.75,.09,.12,.12,gunmetal);
+  weaponPart(x,-.012,-.75,.04,.04,.07,M.cyan);
+  weaponPart(x,-.07,-1.72,.045,.14,.06,steel);
+  weaponPart(x+.23,-.22,-.53,.13,.05,.09,steel);
+  weaponPart(x,-.26,-.43,.1,.035,.11,brass);
+  // Rifle-specific angled foregrip.
+  weaponPart(x,-.49,-1.20,.14,.35,.18,polymer);
+  weaponPart(.48,-.53,-.45,.19,.2,.3,skin);
+  weaponPart(.50,-.68,-.37,.27,.3,.36,sleeve);
+  weaponPart(.13,-.57,-1.21,.21,.17,.29,skin);
+  weaponPart(.10,-.71,-1.13,.28,.26,.36,sleeve);
+ }else{
+  // BREACH-8: visibly different wide, short pump shotgun, twin tube front, shell carrier, no rifle magazine.
+  weaponPart(x,-.30,-.59,.48,.35,.68,gunmetal);
+  weaponPart(x,-.17,-.57,.46,.08,.67,steel);
+  weaponPart(x,-.30,-.22,.31,.22,.50,polymer);
+  weaponPart(x,-.40,-.02,.24,.20,.43,polymer);
+  weaponPart(x,-.48,-.49,.16,.30,.22,polymer);
+  weaponPart(x,-.33,-1.13,.43,.22,.65,polymer);
+  for(let i=0;i<7;i++)weaponPart(x,-.20,-.86-i*.09,.40,.026,.038,gunmetal);
+  // Oversized short shotgun barrel and parallel magazine tube.
+  tube(-.27,-1.58,.125,.96,steel);
+  tube(-.27,-2.10,.15,.11,gunmetal);
+  tube(-.27,-2.17,.105,.025,M.dark);
+  tube(-.43,-1.48,.085,.74,gunmetal);
+  tube(-.43,-1.88,.10,.07,steel);
+  // Vented heat shield and polished breach details.
+for(let i=0;i<6;i++){
+ weaponPart(x,-.105,-1.05-i*.12,.32,.045,.05,steel);
+ weaponPart(x+.24,-.31,-.85-i*.11,.035,.09,.07,M.dark);
+}
+weaponPart(x,-.12,-.72,.38,.09,.18,gunmetal);
+weaponPart(x,-.07,-.68,.15,.10,.08,M.cyan);
+weaponPart(x,-.47,-.19,.22,.24,.35,polymer);
+weaponPart(x,-.57,-.05,.31,.28,.18,gunmetal);
+// Distinctive ribbed sliding pump under barrel.
+  weaponPart(x,-.44,-1.19,.46,.18,.45,polymer);
+  for(let i=0;i<5;i++)weaponPart(x,-.343,-1.02-i*.08,.40,.025,.022,steel);
+  // Side-mounted shell carrier, red/orange shells.
+  for(let i=0;i<5;i++){
+   const shell=weaponPart(x+.267,-.28,-.35-i*.125,.045,.13,.055,brass);
+   shell.rotation.z=.08;
+   weaponPart(x+.299,-.23,-.35-i*.125,.015,.05,.055,M.orange);
+  }
+  weaponPart(x,-.07,-.49,.12,.10,.13,gunmetal);
+  weaponPart(x,-.035,-.49,.035,.045,.07,M.cyan);
+  weaponPart(x,-.07,-1.78,.055,.12,.06,steel);
+  weaponPart(.48,-.56,-.42,.19,.2,.30,skin);
+  weaponPart(.50,-.71,-.34,.27,.30,.36,sleeve);
+  weaponPart(.14,-.61,-1.15,.21,.17,.29,skin);
+  weaponPart(.10,-.75,-1.06,.28,.26,.36,sleeve);
+ }
+}makeGun(0);const flash={intensity:0};
+const hostileBolts=[];const keys={},enemies=[],particles=[],clock=new T.Clock(),ray=new T.Raycaster();let active=false,locked=false,dead=false,health=100,kills=0,wave=1,weapon=0,ammo=[100,100],reserve=300,reloadEnd=0,reloading=false,shotAt=0,trigger=false,velocityY=0,height=0,recoil=0,walkPhase=0,spawnDelay=0,audio=null,msgUntil=0,hitUntil=0,damageFlash=0;
+const specs=[{name:'VX-9 ASSAULT RIFLE',size:100,cost:3,delay:115,damage:1,pellets:1,spread:.012,reload:1450},{name:'BREACH-8 SHOTGUN',size:100,cost:16,delay:660,damage:1,pellets:8,spread:.065,reload:1950}];
+function tone(freq,dur=.1,type='sawtooth',gain=.07){if(!audio)return;try{const o=audio.createOscillator(),g=audio.createGain();o.type=type;o.frequency.setValueAtTime(freq,audio.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(35,freq*.4),audio.currentTime+dur);g.gain.setValueAtTime(gain,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+dur);o.connect(g).connect(audio.destination);o.start();o.stop(audio.currentTime+dur);}catch(e){}}
+function message(s,d=1300){$('centerMessage').textContent=s;msgUntil=performance.now()+d;}
+function updateHUD(){$('health').textContent=health;$('healthfill').style.width=health+'%';$('wave').textContent=wave;$('kills').textContent=kills;$('left').textContent=enemies.length;$('pending').textContent=pendingRobots;$('weapon').textContent=specs[weapon].name;$('ammo').textContent=ammo[weapon]+'%';$('reserveDisplay').textContent='SHARED RESERVE ENERGY: '+reserve+'%';}
+function createEnemy(kind){const g=new T.Group();let boss=kind===4,heavy=kind===2||boss,scout=kind===1,gunner=kind===3||boss;g.scale.setScalar(boss?3.1:heavy?1.35:scout?.84:1);const body=gunner?M.trim:heavy?M.heavy:M.robot;
+box(0,1.24,0,.86,1,.64,body,g,true);box(0,2.02,-.02,.7,.52,.59,M.metal,g,true);box(0,2.04,-.34,.47,.12,.05,heavy?M.danger:M.eye,g);box(0,1.2,-.36,.44,.14,.07,M.danger,g);
+const arms=[],legs=[];for(const s of [-1,1]){const a=new T.Group();a.position.set(s*.59,1.65,0);box(0,-.35,0,.28,.74,.31,M.metal,a,true);g.add(a);arms.push(a);const l=new T.Group();l.position.set(s*.24,.78,0);box(0,-.4,0,.29,.79,.34,M.dark,l,true);g.add(l);legs.push(l);}for(const side of [-1,1]){const shoulder=new T.Mesh(new T.SphereGeometry(.32,12,8),body);shoulder.position.set(side*.58,1.65,0);g.add(shoulder);const knee=new T.Mesh(new T.SphereGeometry(.17,10,8),M.metal);knee.position.set(side*.24,.5,-.05);g.add(knee);box(side*.48,1.15,-.38,.12,.4,.09,M.orange,g);}
+// Layered armor, vents, illuminated joints and plated boots (no extra dynamic lights).
+box(0,1.47,-.352,.68,.32,.09,body,g);
+box(0,1.05,-.355,.54,.11,.08,M.dark,g);
+for(const side of [-1,1]){
+ box(side*.25,1.39,-.412,.13,.035,.025,M.eye,g);
+ box(side*.59,1.46,-.20,.25,.22,.08,body,g);
+ box(side*.24,.27,-.20,.32,.19,.43,M.metal,g);
+ box(side*.24,.48,-.205,.12,.08,.055,M.orange,g);
+}
+for(let i=-1;i<=1;i++)box(i*.13,1.15,-.404,.065,.22,.03,M.dark,g);
+if(gunner){
+ box(.76,1.45,-.4,.22,.22,1.05,M.dark,g);
+ box(.76,1.45,-.96,.28,.3,.20,M.orange,g);
+ box(.76,1.46,-.65,.12,.10,.43,M.metal,g);
+ box(0,1.48,-.37,.52,.13,.10,M.cyan,g);
+}
+const head=new T.Mesh(new T.SphereGeometry(.37,16,12),M.metal);head.position.set(0,2.04,-.03);g.add(head);const visor=new T.Mesh(new T.SphereGeometry(.25,16,10),M.eye);visor.scale.set(1.15,.22,.3);visor.position.set(0,2.08,-.36);g.add(visor);
+
+// Spawn regular enemies in the player's accessible combat area. Never silently lose a wave.
+// Preserve the original Mission 1 and 2 spawning behavior from STARFALL 3.3.
+if(!boss && missionStage<=6){
+let ok=false;for(let k=0;k<160;k++){let a=Math.random()*Math.PI*2,r=14+Math.random()*20,x=camera.position.x+Math.cos(a)*r,z=camera.position.z+Math.sin(a)*r;if((missionStage<6||z<-63)&&!blocked(x,z,.9)&&enemies.every(e=>Math.hypot(e.position.x-x,e.position.z-z)>2.9)){g.position.set(x,0,z);ok=true;break;}}
+if(!ok){for(let k=0;k<240;k++){let a=Math.random()*Math.PI*2,r=20+Math.random()*26,x=camera.position.x+Math.cos(a)*r,z=camera.position.z+Math.sin(a)*r;if((missionStage<6||z<-63)&&!blocked(x,z,1)&&enemies.every(e=>Math.hypot(e.position.x-x,e.position.z-z)>2.9)){g.position.set(x,0,z);ok=true;break;}}}
+if(!ok)return;
+}else{
+let ok=false;
+if(!boss && missionStage>=9){g.position.set((Math.random()-.5)*10,0,Math.max(84,Math.min(158,camera.position.z+20+Math.random()*17)));ok=true;}
+if(boss){g.position.set(0,0,194);ok=true;}
+if(!ok)return;
+}
+g.userData={kind,hp:boss?200:heavy?38:scout?3:gunner?7:5,speed:boss?3.25:heavy?3.25:scout?5.1:3.5,damage:boss?34:heavy?24:scout?7:gunner?13:10,arms,legs,lastAttack:0,attackStart:-10000,hitDone:true,phase:Math.random()*8,flash:0,gunner,boss};scene.add(g);enemies.push(g);if(boss)grahm=g;}
+let missionStage=0,storyUntil=0,dialogueQueue=[],nextDialogueAt=0,missionFinished=false;let pendingRobots=0,nextRobotAt=0,spawnSequence=0;const MAX_ACTIVE_ROBOTS=11;
+function say(who,line,duration=4300){$('speaker').textContent=who;$('dialogue').textContent=line;$('comms').style.display='block';storyUntil=performance.now()+Math.max(duration,Math.min(11500,line.length*67));if(who.startsWith('NOVA'))novaSpeak(line);else if(who.includes('ARGON')&&!novaMuted&&'speechSynthesis' in window){
+ try{
+  speechSynthesis.cancel();
+  const a=new SpeechSynthesisUtterance(line);
+  a.lang='en-US';a.rate=.77;a.pitch=.38;a.volume=1;
+  // Select a dedicated masculine English voice instead of NOVA's default system voice.
+  const englishVoices=speechSynthesis.getVoices().filter(v=>/^en(?:[-_]|$)/i.test(v.lang||''));
+  const maleNames=/\b(male|david|daniel|alex|fred|james|aaron|guy|arthur|oliver|thomas|george|ryan|andrew|brian|eric|jacob|paul|richard|matthew|michael|robert|rishi|reed)\b/i;
+  const femaleNames=/\b(female|samantha|victoria|karen|zira|ava|susan|serena|allison|moira)\b/i;
+  const maleVoice=englishVoices.find(v=>maleNames.test(v.name+' '+v.voiceURI)&&!femaleNames.test(v.name+' '+v.voiceURI));
+  const distinctVoice=englishVoices.find(v=>!v.default&&!femaleNames.test(v.name||''));
+  if(maleVoice||distinctVoice)a.voice=maleVoice||distinctVoice;
+  speechSynthesis.speak(a);
+ }catch(e){}
+}}
+function queueNova(line,delay=6500){dialogueQueue.push({line,at:performance.now()+delay});}
+function objective(text){$('objective').textContent=text;}
+function startStory(){dialogueQueue.length=0;missionStage=0;missionFinished=false;objective('Survive the security breach • Eliminate the first wave');say('NOVA // AI COMPANION','You are inside Starfall, the station the machines built in 2575 after conquering Earth. First, clear this security patrol so we can reach a terminal. Use your weapons to survive; we need their network to uncover what the empire is protecting.',9300);}
+const waypointVector=new T.Vector3();
+function updateWaypoint(){
+ const el=$('waypoint');
+ if(!active||missionStage<1||missionStage>10){el.style.display='none';return;}
+ const target=missionStage===7?innerTarget:missionStage===8?innerThreshold:missionStage===9?hallwayWaypoint:missionStage===10?arenaTarget:missionStage===4?doorTarget:missionStage===5?consoles[3]:missionStage<=3?consoles[missionStage-1]:null;if(!target){el.style.display='none';return;}
+ waypointVector.copy(target.g.position);waypointVector.y=3.6;
+ const distance=Math.hypot(camera.position.x-waypointVector.x,camera.position.z-waypointVector.z);
+ const projected=waypointVector.clone().project(camera);
+ const front=new T.Vector3();camera.getWorldDirection(front);
+ const toward=waypointVector.clone().sub(camera.position);
+ const facing=front.dot(toward)>0;
+ const width=innerWidth,heightPx=innerHeight;
+ let px=facing?(projected.x*.5+.5)*width:width/2+(projected.x>0?-1:1)*width;
+ let py=facing?(-projected.y*.5+.5)*heightPx:heightPx*.72;
+ px=Math.max(95,Math.min(width-95,px));py=Math.max(100,Math.min(heightPx-110,py));
+ el.style.left=px+'px';el.style.top=py+'px';el.style.display='block';
+ $('waypointName').textContent=target.label;
+ $('waypointDistance').textContent=Math.round(distance)+' m'+(distance<(missionStage===4?6:4)&&[1,2,3,4,5,7].includes(missionStage)?' • PRESS E':'');
+ el.style.opacity=distance<4?'1':'.88';
+}
+function interact(){
+ if(!active||missionFinished||missionStage===9||missionStage===10||missionStage===11)return;
+ const p=camera.position;
+ if(missionStage===7&&Math.hypot(p.x,p.z-63)<7){
+ missionStage=8;innerUnlocked=true;objective('MISSION 03 — Enter the inner security hallways');
+ say('NOVA // AI COMPANION','Level 3 clearance accepted. This entrance leads to Starfall’s inner security sector. Expect military-grade machines, not maintenance robots. Push through the hallways to reach the command chamber.',9000);
+ message('MISSION 03 — BREACH PROTOCOL',4300);return;
+ }
+ if(missionStage===4&&Math.hypot(p.x-doorX,p.z-doorZ)<6){
+  doorOpen=true;missionStage=5;
+  objective('MISSION 02 // Enter the research deck and access the core');
+  say('NOVA // AI COMPANION','Airlock unlocked. We need Level 3 access codes to get deeper into Starfall. The research terminal stores them. Find the marked console and press E so I can decrypt the codes.',6700);
+  message('MISSION TWO — THE RESEARCH DECK',4200);tone(740,.5,'triangle');return;
+ }
+ const c=missionStage===5?consoles[3]:consoles[missionStage===1?0:missionStage===2?1:2];if(!c||Math.hypot(p.x-c.g.position.x,p.z-c.g.position.z)>4)return;
+ if(missionStage===1){missionStage=2;objective('Reach the navigation uplink • West observation wing');say('NOVA // AI COMPANION','Security logs acquired. The research deck is locked behind restricted access. Go to the marked navigation uplink and press E so I can locate the correct authorization terminal.');tone(900,.3,'triangle');}
+ else if(missionStage===2){missionStage=3;objective('Reach the bridge transmitter • Southeast deck');say('NOVA // AI COMPANION','The navigation uplink revealed restricted engineering access codes. Reach the bridge terminal and press E to retrieve the authorization we need for the research deck.');tone(900,.3,'triangle');}
+ else if(missionStage===3){
+ missionStage=4;objective('MISSION 02 // Unlock the northern research airlock');
+ say('NOVA // AI COMPANION','Excellent. We have the clearance codes for the northern research airlock. The research deck contains manufacturing and security records that could help us understand how the robot empire controls this station. Follow the marker to the northern door and press E to unlock it.',9300);
+ saveMissionCheckpoint(2);message('MISSION 01 COMPLETE',4800);tone(1000,.8,'triangle');
+ }else if(missionStage===5){
+ missionStage=6;wave++;pendingRobots=16;nextRobotAt=performance.now()+600;
+ objective('MISSION 02 // Defend the research core against armed robots');
+ say('NOVA // AI COMPANION','I found the Level 3 clearance codes, but decryption has triggered a security response. Defend this room while I finish recovering the codes. We need them to reach the inner core.',6800);
+ message('DEFEND THE RESEARCH DECK',3000);
+ }
+ updateHUD();}
+function startHallWave(){
+ hallFinalAnnounced=false;
+ mission3Wave++;pendingRobots=mission3Wave===1?6:mission3Wave===2?8:10;
+ hallwayWaypoint.g.position.z=mission3Wave===1?112:mission3Wave===2?143:183;hallwayWaypoint.label=mission3Wave===3?'REACH GRAHM CHAMBER':'NEXT SECURITY CHECKPOINT';
+ spawnSequence=mission3Wave*3;nextRobotAt=performance.now()+650;spawnDelay=0;
+ objective('MISSION 03 — Clear security hallway '+mission3Wave+' of 3');
+ say('NOVA // AI COMPANION',mission3Wave===1?'These are reinforced security units. Use the cover along the walls and keep moving.':mission3Wave===2?'More units are coming, including heavy suppressors. Aim for their exposed components and avoid standing still.':'This is the last security checkpoint before Grahm. The machines are throwing everything they have at us.',7000);
+ message('SECURITY HALLWAY '+mission3Wave+' / 3',3500);
+}
+function beginGrahm(){
+ if(missionStage!==9)return;
+ missionStage=10;pendingRobots=0;spawnDelay=0;
+ createEnemy(4);
+ if(!grahm){missionStage=9;return;}
+ objective('MISSION 03 — DEFEAT SERGEANT GRAHM • Third in Command');
+ dialogueQueue.length=0;
+ say('NOVA // AI COMPANION','Sergeant Grahm. Third in command of Starfall. His armor is extremely strong, and his attacks are deadly. Keep moving, use cover, and target his exposed power core. Defeat Grahm to secure the route deeper into the station.',13000);
+ message('SERGEANT GRAHM — THIRD IN COMMAND',5500);
+}
+function defeatGrahm(){
+ if(grahmDefeated)return;grahmDefeated=true;missionStage=11;missionFinished=true;dialogueQueue.length=0;
+ pendingRobots=0;spawnDelay=0;argonTriggered=true;
+ objective('MISSION 03 COMPLETE — Sergeant Grahm defeated');
+ message('SERGEANT GRAHM DESTROYED',6500);
+ say('NOVA // AI COMPANION','Grahm’s systems are offline. You did it. That was Starfall’s third-highest-ranking officer. Wait... someone is accessing our communications channel.',10000);
+ queueTransmission('MAJOR SERGEANT CAPTAIN ARGON','Human. You have destroyed one of my finest officers. I am Major Sergeant Captain Argon, commander of Starfall. Leave this station immediately, or you will be killed. You have already sealed your doom.',11000);
+ queueTransmission('NOVA // AI COMPANION','That was Argon, the commander of Starfall. He knows we are here. And I do not think he is bluffing. Mission three complete.',24000);
+}
+function queueTransmission(who,line,delay){dialogueQueue.push({who,line,at:performance.now()+delay});}
+function spawnWave(){
+ pendingRobots=Math.min(9+wave*3,25);
+ spawnSequence=0;
+ nextRobotAt=performance.now()+700;
+ // Only two robots enter immediately; the rest arrive during the fight.
+ for(let i=0;i<2&&pendingRobots>0;i++){const count=enemies.length;createEnemy(i===1?1:0);if(enemies.length>count){pendingRobots--;spawnSequence++;}}
+ message('WAVE '+wave+' — HOSTILE REINFORCEMENTS',2200);
+ tone(480,.3,'triangle');updateHUD();
+}
+function deployReinforcements(now){
+ if(pendingRobots<=0||now<nextRobotAt||enemies.length>=MAX_ACTIVE_ROBOTS)return;
+ const kind=missionStage===9?(spawnSequence%3===0?2:spawnSequence%2===0?3:1):(missionStage>=6||wave>=2)&&spawnSequence%3===0?3:wave>=3&&spawnSequence%9===0?2:spawnSequence%4===0?1:0;
+ const before=enemies.length;
+ createEnemy(kind);
+ if(enemies.length>before){pendingRobots--;spawnSequence++;nextRobotAt=now+1450+Math.random()*1650;updateHUD();}
+ else nextRobotAt=now+650;
+}
+const SAVE_KEY='starfall_mission_checkpoint_v1';
+function readMissionCheckpoint(){try{const n=Number(localStorage.getItem(SAVE_KEY));return n===2||n===3?n:1;}catch(e){return 1;}}
+function saveMissionCheckpoint(n){try{if(n>readMissionCheckpoint())localStorage.setItem(SAVE_KEY,String(n));}catch(e){}}
+function restoreMissionCheckpoint(){
+ const saved=readMissionCheckpoint();
+ if(saved===2){
+  missionStage=4;missionFinished=false;pendingRobots=0;spawnDelay=0;wave=1;
+  objective('MISSION 02 // Unlock the northern research airlock');
+  say('NOVA // AI COMPANION','Mission 02 checkpoint restored. You have the research airlock clearance. Follow the marker to the northern door and press E to enter the research deck.',8000);
+  message('MISSION 02 — CHECKPOINT RESTORED',4000);
+ }else if(saved===3){
+  missionStage=7;missionFinished=false;pendingRobots=0;spawnDelay=0;wave=2;
+  objective('MISSION 03 — Return to the main level • Unlock the Level 3 security door');
+  say('NOVA // AI COMPANION','Mission 03 checkpoint restored. Level 3 clearance is secured. Return to the main level and use the southern security door to enter the inner core.',8000);
+  message('MISSION 03 — CHECKPOINT RESTORED',4000);
+ }
+ updateHUD();
+}
+function reset(redeployCheckpoint=false){for(const b of hostileBolts)scene.remove(b.mesh);hostileBolts.length=0;doorOpen=false;doorOpening=0;innerUnlocked=false;innerDoorProgress=0;grahm=null;grahmDefeated=false;argonTriggered=false;mission3Wave=0;hallFinalAnnounced=false;innerLeft.position.x=-2.75;innerRight.position.x=2.75;doorLeft.position.x=-2.35;doorRight.position.x=2.35;for(const e of enemies)scene.remove(e);enemies.length=0;for(const p of particles)scene.remove(p.mesh);particles.length=0;health=100;kills=0;wave=1;weapon=0;ammo=[100,100];reserve=300;reloadEnd=0;reloading=false;shotAt=0;velocityY=0;height=0;recoil=0;dead=false;spawnDelay=0;pendingRobots=0;nextRobotAt=0;spawnSequence=0;camera.position.set(0,1.75,12);camera.rotation.set(0,0,0);makeGun(0);startStory();if(redeployCheckpoint&&readMissionCheckpoint()>1)restoreMissionCheckpoint();else spawnWave();updateHUD();}
+function clearControls(){for(const code in keys)delete keys[code];trigger=false;}
+function pause(title,sub,label){active=false;clearControls();if('speechSynthesis' in window)speechSynthesis.cancel();overlay.style.display='grid';$('menuTitle').textContent=title;$('menuSub').textContent=sub;play.textContent=label;}
+function captureMouse(){
+ if(document.pointerLockElement===renderer.domElement)return;
+ try{const req=renderer.domElement.requestPointerLock?.();if(req&&typeof req.catch==='function')req.catch(()=>{if(active)pause('MOUSE NOT CAPTURED','Click RESUME to allow Chrome to capture your mouse.','RESUME');});}
+ catch(e){if(active)pause('MOUSE NOT CAPTURED','Click RESUME to allow Chrome to capture your mouse.','RESUME');}
+}
+play.addEventListener('click',()=>{
+ if(!introWatched&&!dead){launchCinematic();return;}
+ if(!audio){try{audio=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+ if(audio?.state==='suspended')audio.resume();
+ if(!gameStarted||dead){reset(dead);gameStarted=true;}
+ clearControls();overlay.style.display='none';hud.style.display='block';active=true;
+ captureMouse();
+});
+renderer.domElement.addEventListener('click',()=>{if(active&&!locked)captureMouse();});
+document.addEventListener('pointerlockchange',()=>{locked=document.pointerLockElement===renderer.domElement;if(!locked){clearControls();}if(!locked&&active)pause('PAUSED','Return to the fight when ready.','RESUME');});
+document.addEventListener('mousemove',e=>{if(!locked||!active)return;camera.rotation.y-=e.movementX*.0022;camera.rotation.x=T.MathUtils.clamp(camera.rotation.x-e.movementY*.0022,-1.45,1.45);});
+document.addEventListener('keydown',e=>{if(e.code==='Escape'){if(active){e.preventDefault();pause('PAUSED','Game paused. Click RESUME to recapture the mouse.','RESUME');if(document.pointerLockElement)document.exitPointerLock?.();}return;}if(active)keys[e.code]=true;if(['Space','ArrowUp','ArrowDown'].includes(e.code))e.preventDefault();if(!active)return;if(e.code==='Space'&&height===0){velocityY=8;tone(190,.1,'triangle',.03);}if(e.code==='KeyH'){if(performance.now()-lastHintAt>1800){lastHintAt=performance.now();missionHint();}}if(e.code==='KeyR')reload();if(e.code==='KeyE')interact();if(e.code==='Digit1')switchWeapon(0);if(e.code==='Digit2')switchWeapon(1);});document.addEventListener('keyup',e=>{keys[e.code]=false;});window.addEventListener('blur',clearControls);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearControls();});document.addEventListener('mousedown',e=>{if(e.button===0&&active){trigger=true;fire();}});document.addEventListener('mouseup',e=>{if(e.button===0)trigger=false;});document.addEventListener('contextmenu',e=>e.preventDefault());
+function switchWeapon(i){if(weapon===i)return;weapon=i;reloading=false;makeGun(i);tone(480,.09,'square',.03);updateHUD();}
+function reload(){const s=specs[weapon];if(reloading||ammo[weapon]===s.size||reserve<=0)return;reloading=true;reloadEnd=performance.now()+s.reload;message('RELOADING',800);tone(540,.12,'square',.03);}
+function impact(pos,color=0x70e9ff){const mesh=new T.Mesh(new T.SphereGeometry(.09,5,5),new T.MeshBasicMaterial({color}));mesh.position.copy(pos);scene.add(mesh);particles.push({mesh,life:.23});}
+function fire(){if(!active||!locked||reloading)return;const now=performance.now(),s=specs[weapon];if(now-shotAt<s.delay)return;if(ammo[weapon]<s.cost){reload();return;}shotAt=now;ammo[weapon]=Math.max(0,ammo[weapon]-s.cost);recoil=weapon===1?.33:.13;flash.intensity=weapon===1?12:7;tone(weapon===1?115:260,weapon===1?.24:.12,'sawtooth',weapon===1?.13:.07);const targets=enemies.flatMap(e=>e.children.filter(o=>o.isMesh));let hit=false;
+for(let i=0;i<s.pellets;i++){const dx=(Math.random()-.5)*s.spread,dy=(Math.random()-.5)*s.spread;ray.setFromCamera(new T.Vector2(dx,dy),camera);ray.far=90;const hits=ray.intersectObjects(targets,false);if(!hits.length)continue;let enemy=hits[0].object.parent;while(enemy&&!enemy.userData.hp)enemy=enemy.parent;if(!enemy)continue;
+// Raycast the same visible solid meshes that define physical obstacles.
+// This respects their actual height and never treats a short railing as an infinite wall.
+const wallHits=ray.intersectObjects(colliderMeshes,false);
+if(wallHits.length&&wallHits[0].distance<hits[0].distance-.025){impact(wallHits[0].point,0xffc66c);continue;}
+// Central reactor and the sealed airlock also stop rounds.
+if(ray.intersectObject(reactor,true).some(h=>h.distance<hits[0].distance-.025))continue;
+enemy.userData.hp-=s.damage;hit=true;impact(hits[0].point);if(enemy.userData.hp<=0){if(enemy.userData.boss)defeatGrahm();scene.remove(enemy);enemies.splice(enemies.indexOf(enemy),1);kills++;const energyReward=enemy.userData.boss?200:enemy.userData.kind===2?150:enemy.userData.kind===3?55:35;reserve=Math.min(600,reserve+energyReward);health=Math.min(100,health+(enemy.userData.kind===2?5:1));tone(650,.11,'triangle',.045);}}
+if(hit){hitUntil=now+90;$('reticleHit').style.opacity='1';}updateHUD();if(enemies.length===0&&pendingRobots===0&&(missionStage===0||missionStage===9))spawnDelay=now+1900;}
+function gameOver(){dead=true;active=false;trigger=false;document.exitPointerLock?.();pause('SYSTEM FAILURE','Mission '+String(readMissionCheckpoint()).padStart(2,'0')+' checkpoint saved. Redeploy to restart that mission.','REDEPLOY MISSION '+String(readMissionCheckpoint()).padStart(2,'0'));}
+function animate(){requestAnimationFrame(animate);let dt=Math.min(clock.getDelta(),.045),now=performance.now();if(active){if(dialogueQueue.length&&now>=dialogueQueue[0].at){const next=dialogueQueue.shift();say(next.who||'NOVA // AI COMPANION',next.line,Math.max(8000,next.line.length*70));}const forward=new T.Vector3(0,0,-1).applyQuaternion(camera.quaternion);forward.y=0;forward.normalize();const right=new T.Vector3().crossVectors(forward,new T.Vector3(0,1,0)).normalize();const move=new T.Vector3();if(keys.KeyW||keys.ArrowUp)move.add(forward);if(keys.KeyS||keys.ArrowDown)move.sub(forward);if(keys.KeyD)move.add(right);if(keys.KeyA)move.sub(right);if(move.lengthSq()){move.normalize().multiplyScalar(dt*(keys.ShiftLeft||keys.ShiftRight?11:7));const nx=camera.position.x+move.x,nz=camera.position.z+move.z;if(!blocked(nx,camera.position.z))camera.position.x=nx;if(!blocked(camera.position.x,nz))camera.position.z=nz;walkPhase+=dt*12;}velocityY-=20*dt;height+=velocityY*dt;if(height<0){height=0;velocityY=0;}camera.position.y=1.75+height;
+if(storyUntil&&now>storyUntil){$('comms').style.display='none';storyUntil=0;}
+const target=missionStage===7||missionStage===8?innerTarget:missionStage===4?doorTarget:missionStage===5?consoles[3]:missionStage<=3?consoles[missionStage===1?0:missionStage===2?1:2]:null;
+const nearby=target&&missionStage>0&&(missionStage<=5||missionStage===7)&&Math.hypot(camera.position.x-target.g.position.x,camera.position.z-target.g.position.z)<(missionStage===4||missionStage===7?7:4);
+$('interact').style.display=nearby?'block':'none';$('interact').textContent=nearby?'[ E ] ACCESS '+target.label:'';updateWaypoint();
+ if(innerUnlocked){innerDoorProgress=Math.min(1,innerDoorProgress+dt*.8);innerLeft.position.x=-2.75-innerDoorProgress*6;innerRight.position.x=2.75+innerDoorProgress*6;}
+ if(missionStage===8&&camera.position.z>77){missionStage=9;mission3Wave=0;objective('MISSION 03 — Fight through the reinforced security hallways');say('NOVA // AI COMPANION','We are inside the inner security sector. These hallways lead to Sergeant Grahm’s command chamber. He is third in command of Starfall. Clear the security robots ahead, then keep moving deeper.',8800);startHallWave();}
+ if(missionStage===9&&mission3Wave>=3&&enemies.length===0&&pendingRobots===0&&camera.position.z>166){beginGrahm();}
+if(doorOpen){doorOpening=Math.min(1,doorOpening+dt*.75);doorLeft.position.x=-2.35-doorOpening*4.9;doorRight.position.x=2.35+doorOpening*4.9;}
+for(let i=0;i<consoles.length;i++){const c=consoles[i];c.ring.rotation.z+=dt*.7;c.ring.position.y=3.05+Math.sin(now*.002+i)*.12;}
+deployReinforcements(now);if(trigger)fire();if(reloading&&now>=reloadEnd){let n=Math.min(specs[weapon].size-ammo[weapon],reserve);ammo[weapon]+=n;reserve-=n;reloading=false;tone(760,.08,'square',.025);updateHUD();}
+for(const e of enemies){const u=e.userData,dx=camera.position.x-e.position.x,dz=camera.position.z-e.position.z,dist=Math.hypot(dx,dz);e.rotation.y=Math.atan2(-dx,-dz);const attacking=now-u.attackStart<650;if(dist>(u.boss?3.9:1.9)&&!attacking){const vx=dx/dist,vz=dz/dist,step=u.speed*dt;const previousX=e.position.x,previousZ=e.position.z;
+// Look ahead instead of pushing against the nearest wall; sample a fan of headings.
+const desired=Math.atan2(vz,vx),lookAhead=2.6;
+const angles=[0,.35,-.35,.75,-.75,1.15,-1.15,1.57,-1.57,2.1,-2.1,Math.PI];
+let best=null,bestScore=-Infinity;
+for(const offset of angles){
+ const angle=desired+offset,sx=Math.cos(angle),sz=Math.sin(angle);
+ const nx=e.position.x+sx*step,nz=e.position.z+sz*step;
+ if(blocked(nx,nz,.7))continue;
+ const farX=e.position.x+sx*lookAhead,farZ=e.position.z+sz*lookAhead;
+ const clear=!blocked(farX,farZ,.7);
+ const score=(sx*vx+sz*vz)*2+(clear?2:0)-Math.abs(offset)*.11;
+ if(score>bestScore){bestScore=score;best=[nx,nz];}
+}
+if(best){e.position.x=best[0];e.position.z=best[1];}
+// If a robot has made almost no progress, briefly commit to a side route.
+if(!u.pathCheckAt){u.pathCheckAt=now;u.pathX=e.position.x;u.pathZ=e.position.z;}
+if(now-u.pathCheckAt>1500){
+ const traveled=Math.hypot(e.position.x-u.pathX,e.position.z-u.pathZ);
+ if(traveled<.65){u.detourUntil=now+1800;u.detourSide=u.detourSide===1?-1:1;}
+ u.pathCheckAt=now;u.pathX=e.position.x;u.pathZ=e.position.z;
+}
+if(u.detourUntil>now){
+ const side=u.detourSide||1;
+ for(const [sx,sz] of [[-vz*side,vx*side],[vx,vz]]){
+ const nx=e.position.x+sx*step,nz=e.position.z+sz*step;
+ if(!blocked(nx,nz,.7)){e.position.x=nx;e.position.z=nz;break;}
+ }
+}}
+const stride=dist>(u.boss?3.9:1.9)&&!attacking?Math.sin(now*.008*u.speed+u.phase)*.55:0;u.legs[0].rotation.x=stride;u.legs[1].rotation.x=-stride;u.arms[0].rotation.x=-stride*.5;u.arms[1].rotation.x=stride*.5;
+if(u.boss&&dist<40&&dist>4.3&&now-u.lastShot>1250){
+ u.lastShot=now+Math.random()*400;
+ e.updateMatrixWorld(true);const muzzlePos=new T.Vector3(.75,1.45,-.95).applyMatrix4(e.matrixWorld);
+ const bolt=new T.Mesh(new T.SphereGeometry(.16,8,6),M.orange);
+ bolt.position.copy(muzzlePos);scene.add(bolt);
+ const direction=new T.Vector3(camera.position.x,1.45+height,camera.position.z).sub(muzzlePos).normalize();
+ hostileBolts.push({mesh:bolt,direction,life:2.2});
+ tone(360,.12,'sawtooth',.026);
+}
+if(dist<(u.boss?5.2:2.3)&&!attacking&&now-u.lastAttack>(u.boss?850:1250)){u.attackStart=now;u.lastAttack=now;u.hitDone=false;tone(110,.18,'triangle',.035);}const t=(now-u.attackStart)/650;if(t>=0&&t<=1){const swing=t<.3?t/.3:t<.65?1:(1-t)/.35;u.arms[0].rotation.x=-swing*2.3;u.arms[1].rotation.x=-swing*2.3;if(t>.47&&!u.hitDone){u.hitDone=true;if(dist<(u.boss?5.8:2.9)&&height<1.5){health=Math.max(0,health-u.damage);damageFlash=.28;tone(85,.2,'square',.11);updateHUD();if(health===0){gameOver();break;}}}}}
+for(let i=hostileBolts.length-1;i>=0;i--){
+ const b=hostileBolts[i];b.mesh.position.addScaledVector(b.direction,dt*17);b.life-=dt;
+ if(b.mesh.position.distanceTo(camera.position)<.95&&height<2.5){
+  health=Math.max(0,health-14);damageFlash=.32;updateHUD();b.life=0;
+  if(health===0){gameOver();}
+ }
+ if(b.life<=0){scene.remove(b.mesh);b.mesh.geometry.dispose();hostileBolts.splice(i,1);}
+}
+if(enemies.length===0&&pendingRobots===0&&!spawnDelay&&missionStage!==4&&missionStage!==5&&missionStage!==7&&missionStage!==8&&missionStage!==10&&missionStage!==11&&!(missionStage===9&&mission3Wave>=3&&hallFinalAnnounced))spawnDelay=now+1900;
+if(enemies.length===0&&pendingRobots===0&&spawnDelay&&now>spawnDelay){spawnDelay=0;if(missionStage===0){missionStage=1;objective('Access security terminal • East observation wing');say('NOVA // AI COMPANION','Patrol eliminated. Now follow the marker to the eastern security terminal and press E. I need access to the security logs so we can move through the core without triggering every alarm.',5600);health=Math.min(100,health+25);reserve=Math.min(600,reserve+60);updateHUD();}else if(missionStage===6){
+ missionStage=7;missionFinished=false;saveMissionCheckpoint(3);
+ objective('MISSION 03 — Return to the main level • Reach the Level 3 door');
+ say('NOVA // AI COMPANION','Level three security codes recovered. Mission two complete. Return through the research airlock to the main level. There is another sealed door on the southern side of the station. Those codes should let us breach deeper into the central core.',10000);
+ message('MISSION 02 COMPLETE — MISSION 03: BREACH PROTOCOL',7500);
+ }else if(missionStage===9){
+ if(mission3Wave<3){startHallWave();}else if(!hallFinalAnnounced){hallFinalAnnounced=true;hallwayWaypoint.g.position.z=186;hallwayWaypoint.label='GRAHM COMMAND CHAMBER';objective('MISSION 03 — Reach Grahm’s command chamber');say('NOVA // AI COMPANION','The hallways are clear. Continue forward into the large command chamber. Sergeant Grahm is waiting there. Prepare for a difficult fight.',8500);}
+ }else if(!missionFinished&&missionStage<4){wave++;health=Math.min(100,health+15);reserve=Math.min(600,reserve+60);spawnWave();}}
+}const moving=active&&(keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||keys.ArrowUp||keys.ArrowDown);view.position.y=moving?Math.sin(walkPhase)*.025:0;recoil=T.MathUtils.lerp(recoil,0,Math.min(1,dt*11));gun.position.z=recoil;gun.rotation.x=reloading?Math.sin(now*.007)*.4:-recoil*.55;flash.intensity*=.65;damageFlash=Math.max(0,damageFlash-dt*1.5);$('hitFlash').style.opacity=damageFlash;if(now>msgUntil&&$('centerMessage').textContent)$('centerMessage').textContent='';if(now>hitUntil&&$('reticleHit').style.opacity!=='0')$('reticleHit').style.opacity='0';for(let i=particles.length-1;i>=0;i--){particles[i].life-=dt;particles[i].mesh.scale.multiplyScalar(.93);if(particles[i].life<=0){scene.remove(particles[i].mesh);particles[i].mesh.geometry.dispose();particles[i].mesh.material.dispose();particles.splice(i,1);}}for(let k=0;k<decor.length;k++)decor[k].rotation.z+=dt*(k%2?.25:-.18);reactorLight.intensity=4.8+Math.sin(now*.002)*.6;renderer.render(scene,camera);}
+window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});camera.position.set(0,1.75,12);animate();
+})();
+</script></body></html>
